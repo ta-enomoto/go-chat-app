@@ -1,0 +1,8 @@
+{
+  "host": "localhost",
+  "port": 3306,
+  "db-name": "resistration",
+  "charset": "utf8",
+  "user": "enomoto",
+  "pass": "Soviet1922"
+}
