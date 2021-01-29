@@ -4,12 +4,26 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"goserver/config"
 )
 
 // マスタからSELECTしたデータをマッピングする構造体
 type USER struct {
 	Id       string `db:"ID"`       // ID
 	Password string `db:"PASSWORD"` // パスワード
+}
+
+var confDB *config.Config
+var ConStr string
+
+func init() {
+	_confDB, err := config.ReadConfDB()
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	confDB = _confDB
+	_conStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s", confDB.User, confDB.Pass, confDB.Host, confDB.Port, confDB.DbName, confDB.Charset)
+	ConStr = _conStr
 }
 
 // データ登録関数
