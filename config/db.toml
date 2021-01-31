@@ -1,6 +1,13 @@
-[database]
+[database1]
 host = "localhost"
 port = 3306
 db-name = "resistration"
+charset = "utf8"
+user = "enomoto"
+
+[database2]
+host = "localhost"
+port = 3306
+db-name = "chatrooms"
 charset = "utf8"
 user = "enomoto"

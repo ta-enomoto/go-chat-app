@@ -14,13 +14,13 @@ import (
 type Session struct {
 	sid          string
 	timeAccessed time.Time
-	sessionValue map[string]string
+	SessionValue map[string]string
 	Manager      *MANAGER
 }
 
 type MANAGER struct {
 	Database    map[interface{}]*Session
-	cookieName  string
+	CookieName  string
 	maxlifetime int64
 }
 
@@ -33,7 +33,7 @@ func init() {
 
 func NewManager(cookieName string, maxlifetime int64) *MANAGER {
 	database := make(map[interface{}]*Session)
-	return &MANAGER{Database: database, cookieName: cookieName, maxlifetime: maxlifetime}
+	return &MANAGER{Database: database, CookieName: cookieName, maxlifetime: maxlifetime}
 }
 
 //新規sid発行
@@ -47,12 +47,12 @@ func (Manager *MANAGER) NewSessionId() string {
 
 //新規セッションの生成
 func (Manager *MANAGER) SessionStart(w http.ResponseWriter, r *http.Request, userId string) (session Session) {
-	cookie, err := r.Cookie(Manager.cookieName)
+	cookie, err := r.Cookie(Manager.CookieName)
 	if err != nil || cookie.Value == "" {
 		sid := Manager.NewSessionId()
 		fmt.Println(sid)
 		session := Manager.NewSession(sid, userId)
-		cookie := http.Cookie{Name: Manager.cookieName, Value: url.QueryEscape(sid), Path: "/", HttpOnly: true, MaxAge: int(Manager.maxlifetime)}
+		cookie := http.Cookie{Name: Manager.CookieName, Value: url.QueryEscape(sid), Path: "/", HttpOnly: true, MaxAge: int(Manager.maxlifetime)}
 		http.SetCookie(w, &cookie)
 		Manager.Database[sid] = session
 		fmt.Println(Manager.Database)
@@ -67,12 +67,12 @@ func (Manager *MANAGER) SessionStart(w http.ResponseWriter, r *http.Request, use
 func (Manager *MANAGER) NewSession(sid string, userId string) *Session {
 	sv := make(map[string]string)
 	sv["ID"] = userId
-	newSession := &Session{sid: sid, timeAccessed: time.Now(), sessionValue: sv}
+	newSession := &Session{sid: sid, timeAccessed: time.Now(), SessionValue: sv}
 	return newSession
 }
 
 func (Manager *MANAGER) SidCheck(w http.ResponseWriter, r *http.Request) bool {
-	clientCookie, err := r.Cookie("cookieName")
+	clientCookie, err := r.Cookie(Manager.CookieName)
 	if err != nil {
 		return false
 	} else {
@@ -92,7 +92,7 @@ func (Manager *MANAGER) SidCheck(w http.ResponseWriter, r *http.Request) bool {
 }
 
 func (Manager *MANAGER) SessionDestroy(w http.ResponseWriter, r *http.Request) error {
-	clientCookie, err := r.Cookie("cookieName")
+	clientCookie, err := r.Cookie(Manager.CookieName)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

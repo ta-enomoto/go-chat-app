@@ -16,7 +16,7 @@ type ConfDB struct {
 }
 
 type Config struct {
-	ConfDB `toml:"database"`
+	ConfDB `toml:"database1"`
 }
 
 // URL設定の構造体

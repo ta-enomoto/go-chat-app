@@ -27,7 +27,7 @@ func init() {
 }
 
 // データ登録関数
-func InsertUser(id, password string, db *sql.DB) bool {
+func InsertUser(id string, password string, db *sql.DB) bool {
 
 	// プリペアードステートメント
 	stmt, err := db.Prepare("INSERT INTO USERS(ID,PASSWORD) VALUES(?,?)")

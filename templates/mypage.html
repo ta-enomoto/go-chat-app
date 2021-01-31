@@ -6,6 +6,11 @@
 </head>
 <body>
   <h2>こんにちは</h2>
+  <ul>
+    {{range .}}
+      <li>{{.}}</li>
+    {{end}}
+    </ul>
   <a href="logout">ログアウトはこちら</a>
   <a href="withdrawal">退会はこちら</a>
 </body>
