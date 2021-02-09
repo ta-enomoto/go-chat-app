@@ -29,6 +29,7 @@ func init() {
 // データ登録関数
 func InsertUser(id string, password string, db *sql.DB) bool {
 
+	//ユーザー名・パスの両方が重複したときの処理書く！！
 	// プリペアードステートメント
 	stmt, err := db.Prepare("INSERT INTO USERS(ID,PASSWORD) VALUES(?,?)")
 	if err != nil {
@@ -75,4 +76,35 @@ func DeleteUserById(id string, db *sql.DB) bool {
 		_ = deletedOrNot
 		return true
 	}
+}
+
+//全ユーザー取得関数
+func SelectAllUser(db *sql.DB) []USER {
+	var users []USER
+
+	// プリペアードステートメント
+	rows, err := db.Query("SELECT * FROM USERS")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	for rows.Next() {
+		user := USER{}
+		err := rows.Scan(&user.Id, &user.Password)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		users = append(users, user)
+	}
+	return users
+}
+
+//ユーザー名重複確認関数
+func ContainsUserName(s []USER, e string) bool {
+	for _, v := range s {
+		if e == v.Id {
+			return true
+		}
+	}
+	return false
 }

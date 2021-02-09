@@ -6,6 +6,13 @@
 </head>
 <body>
   <h2>こんにちは</h2>
+  <p>新規ルームを作成する</p>
+  <form action="" method="post">
+    <p>新規ルーム名：<input type="text" id="roomName" name="roomName"></p>
+    <p>相手ユーザー名：<input type="text" id="memberName" name="memberName"></p>
+    <p><input type="submit" value="作成する" id="chatroom" name="chatroom"></p>
+  </form>
+  <p>ルーム一覧</p>
   <ul>
     {{range .}}
       <li>{{.}}</li>

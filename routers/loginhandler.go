@@ -18,7 +18,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		//ログイン判定
 		accessingUser := new(query.USER)
-		accessingUser.Id = r.FormValue("loginID")
+		accessingUser.Id = r.FormValue("loginId") //formのnameの値
 		accessingUser.Password = r.FormValue("password")
 		fmt.Println(accessingUser.Id, accessingUser.Password)
 

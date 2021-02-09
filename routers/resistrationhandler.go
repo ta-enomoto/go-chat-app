@@ -27,11 +27,9 @@ func ResistrationHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			// deferで処理終了前に必ず接続をクローズする
 			defer db.Close()
-			inserted := query.InsertUser(newUser.Id, newUser.Password, db)
-			if inserted == true {
-				//ログイン完了時の処理
+			insertedUser := query.InsertUser(newUser.Id, newUser.Password, db)
+			if insertedUser == true {
 				t := template.Must(template.ParseFiles("./templates/resistrationcompleted.html"))
 				t.ExecuteTemplate(w, "resistrationcompleted.html", nil)
 			} else {

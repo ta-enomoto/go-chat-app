@@ -27,7 +27,7 @@ type MANAGER struct {
 var Manager *MANAGER
 
 func init() {
-	_manager := NewManager("cookieName", 60)
+	_manager := NewManager("cookieName", 3600)
 	Manager = _manager
 }
 
