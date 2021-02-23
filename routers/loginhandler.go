@@ -17,12 +17,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		t.ExecuteTemplate(w, "login.html", nil)
 	case "POST":
 		//ログイン判定
-		accessingUser := new(query.USER)
-		accessingUser.Id = r.FormValue("loginId") //formのnameの値
+		accessingUser := new(query.User)
+		accessingUser.UserId = r.FormValue("userId") //formのnameの値
 		accessingUser.Password = r.FormValue("password")
-		fmt.Println(accessingUser.Id, accessingUser.Password)
+		fmt.Println(accessingUser.UserId, accessingUser.Password)
 
-		if accessingUser.Id == "" || accessingUser.Password == "" {
+		if accessingUser.UserId == "" || accessingUser.Password == "" {
 			fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
 		} else {
 			// データベース接続
@@ -32,10 +32,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			// deferで処理終了前に必ず接続をクローズする
 			defer db.Close()
-			user := query.SelectUserById(accessingUser.Id, db)
-			if accessingUser.Id == user.Id && accessingUser.Password == user.Password {
+			user := query.SelectUserById(accessingUser.UserId, db)
+			if accessingUser.UserId == user.UserId && accessingUser.Password == user.Password {
 				//if文でsessionstartがうまくいった時というふうに(ブラウザで/に戻った時、sid出し直してる)
-				session.Manager.SessionStart(w, r, accessingUser.Id)
+				session.Manager.SessionStart(w, r, accessingUser.UserId)
 				http.Redirect(w, r, "/mypage", 301)
 			} else {
 				fmt.Fprintf(w, "IDまたはパスワードが間違っています。")

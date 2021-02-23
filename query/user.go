@@ -8,8 +8,8 @@ import (
 )
 
 // マスタからSELECTしたデータをマッピングする構造体
-type USER struct {
-	Id       string `db:"ID"`       // ID
+type User struct {
+	UserId   string `db:"ID"`       // ID
 	Password string `db:"PASSWORD"` // パスワード
 }
 
@@ -48,13 +48,13 @@ func InsertUser(id string, password string, db *sql.DB) bool {
 }
 
 // 単一行データ取得関数
-func SelectUserById(id string, db *sql.DB) (userinfo USER) {
+func SelectUserById(id string, db *sql.DB) (userinfo User) {
 
 	// 構造体USER型の変数userを宣言
-	user := USER{}
+	user := User{}
 
 	// プリペアードステートメント
-	err := db.QueryRow("SELECT ID,PASSWORD FROM USERS WHERE ID = ?", id).Scan(&user.Id, &user.Password)
+	err := db.QueryRow("SELECT ID,PASSWORD FROM USERS WHERE ID = ?", id).Scan(&user.UserId, &user.Password)
 	if err != nil {
 		return
 	}
@@ -79,8 +79,8 @@ func DeleteUserById(id string, db *sql.DB) bool {
 }
 
 //全ユーザー取得関数
-func SelectAllUser(db *sql.DB) []USER {
-	var users []USER
+func SelectAllUser(db *sql.DB) []User {
+	var users []User
 
 	// プリペアードステートメント
 	rows, err := db.Query("SELECT * FROM USERS")
@@ -89,8 +89,8 @@ func SelectAllUser(db *sql.DB) []USER {
 	}
 
 	for rows.Next() {
-		user := USER{}
-		err := rows.Scan(&user.Id, &user.Password)
+		user := User{}
+		err := rows.Scan(&user.UserId, &user.Password)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
@@ -100,9 +100,9 @@ func SelectAllUser(db *sql.DB) []USER {
 }
 
 //ユーザー名重複確認関数
-func ContainsUserName(s []USER, e string) bool {
+func ContainsUserName(s []User, e string) bool {
 	for _, v := range s {
-		if e == v.Id {
+		if e == v.UserId {
 			return true
 		}
 	}

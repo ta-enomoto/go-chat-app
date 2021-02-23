@@ -15,11 +15,11 @@ func ResistrationHandler(w http.ResponseWriter, r *http.Request) {
 		t := template.Must(template.ParseFiles("./templates/resistration.html"))
 		t.ExecuteTemplate(w, "resistration.html", nil)
 	case "POST":
-		newUser := new(query.USER)
-		newUser.Id = r.FormValue("loginID")
+		newUser := new(query.User)
+		newUser.UserId = r.FormValue("userId")
 		newUser.Password = r.FormValue("password")
 
-		if newUser.Id == "" || newUser.Password == "" {
+		if newUser.UserId == "" || newUser.Password == "" {
 			fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
 		} else {
 			// データベース接続
@@ -28,7 +28,7 @@ func ResistrationHandler(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err.Error())
 			}
 			defer db.Close()
-			insertedUser := query.InsertUser(newUser.Id, newUser.Password, db)
+			insertedUser := query.InsertUser(newUser.UserId, newUser.Password, db)
 			if insertedUser == true {
 				t := template.Must(template.ParseFiles("./templates/resistrationcompleted.html"))
 				t.ExecuteTemplate(w, "resistrationcompleted.html", nil)
