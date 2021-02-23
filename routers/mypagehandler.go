@@ -28,17 +28,17 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 			chatroomsFromUserId := query.SelectAllChatroomsByUserId(userSessionVar, dbCR)
 			chatroomsFromMember := query.SelectAllChatroomsByMember(userSessionVar, dbCR)
 
-			var Links []string
+			var Links = append(chatroomsFromUserId, chatroomsFromMember...)
 
-			for i := 0; i <= len(chatroomsFromUserId)-1; i++ {
-				roomName1 := chatroomsFromUserId[i].RoomName + "(お相手：" + chatroomsFromUserId[i].Member + "様)"
+			/*for i := 0; i <= len(chatroomsFromUserId)-1; i++ {
+				roomName1 := chatroomsFromUserId[i].RoomName + " with " + chatroomsFromUserId[i].Member
 				Links = append(Links, roomName1)
-			}
+			}*/
 
-			for i := 0; i <= len(chatroomsFromMember)-1; i++ {
-				roomName2 := chatroomsFromMember[i].RoomName + "(お相手：" + chatroomsFromMember[i].UserId + "様)"
+			/*for i := 0; i <= len(chatroomsFromMember)-1; i++ {
+				roomName2 := chatroomsFromMember[i].RoomName + " with " + chatroomsFromMember[i].UserId
 				Links = append(Links, roomName2)
-			}
+			}*/
 
 			t.ExecuteTemplate(w, "mypage.html", Links)
 		} else {

@@ -15,7 +15,7 @@
   <p>ルーム一覧</p>
   <ul>
     {{range .}}
-      <li>{{.}}</li>
+      <li><a href="/mypage/chatroom{{.Id}}">{{.RoomName}}（お相手：{{.Member}}）</a></li>
     {{end}}
     </ul>
   <a href="logout">ログアウトはこちら</a>

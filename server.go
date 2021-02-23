@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"goserver/routers"
 	"net/http"
+	"regexp"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -11,18 +13,30 @@ type MyMux struct {
 }
 
 func (mux MyMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch r.URL.Path {
-	case "/login":
+	var login = regexp.MustCompile(`/login`)
+	var mypage = regexp.MustCompile(`^/mypage$`)
+	var resistration = regexp.MustCompile(`/resistration`)
+	var logout = regexp.MustCompile(`/logout`)
+	var withdrawal = regexp.MustCompile(`/withdrawal`)
+	var dirUnderMypage = regexp.MustCompile(`/mypage/.*`)
+	url := r.URL.Path
+
+	switch { //r.URL.Path {
+	case login.MatchString(url):
 		routers.LoginHandler(w, r)
-	case "/mypage":
+	case mypage.MatchString(url):
 		routers.MypageHandler(w, r)
-	case "/resistration":
+	case resistration.MatchString(url):
 		routers.ResistrationHandler(w, r)
-	case "/logout":
+	case logout.MatchString(url):
 		routers.LogoutHandler(w, r)
-	case "/withdrawal":
+	case withdrawal.MatchString(url):
 		routers.WithdrawalHandler(w, r)
+	case dirUnderMypage.MatchString(url):
+		routers.ChatroomHandler(w, r)
 	default:
+		url := r.URL.Path
+		fmt.Println(url)
 		http.NotFound(w, r)
 	}
 }
