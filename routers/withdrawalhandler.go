@@ -17,20 +17,20 @@ func WithdrawalHandler(w http.ResponseWriter, r *http.Request) {
 		t.ExecuteTemplate(w, "withdrawal.html", nil)
 	case "POST":
 		deleteUser := new(query.User)
-		deleteUser.UserId = r.FormValue("loginID")
+		deleteUser.UserId = r.FormValue("userId")
 		deleteUser.Password = r.FormValue("password")
 
 		// データベース接続
-		db, err := sql.Open("mysql", query.ConStr)
+		dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 		// deferで処理終了前に必ず接続をクローズする
-		defer db.Close()
+		defer dbUsr.Close()
 
-		user := query.SelectUserById(deleteUser.UserId, db)
+		user := query.SelectUserById(deleteUser.UserId, dbUsr)
 		if deleteUser.UserId == user.UserId && deleteUser.Password == user.Password {
-			deleted := query.DeleteUserById(deleteUser.UserId, db)
+			deleted := query.DeleteUserById(deleteUser.UserId, dbUsr)
 			if deleted == true {
 				//削除完了時の処理
 				session.Manager.SessionDestroy(w, r)

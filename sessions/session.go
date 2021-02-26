@@ -46,7 +46,7 @@ func (Manager *MANAGER) NewSessionId() string {
 }
 
 //新規セッションの生成
-func (Manager *MANAGER) SessionStart(w http.ResponseWriter, r *http.Request, userId string) (session Session) {
+func (Manager *MANAGER) SessionStart(w http.ResponseWriter, r *http.Request, userId string) (session *Session) {
 	cookie, err := r.Cookie(Manager.CookieName)
 	if err != nil || cookie.Value == "" {
 		sid := Manager.NewSessionId()
@@ -56,19 +56,14 @@ func (Manager *MANAGER) SessionStart(w http.ResponseWriter, r *http.Request, use
 		http.SetCookie(w, &cookie)
 		Manager.Database[sid] = session
 		fmt.Println(Manager.Database)
-	} //else {  もしsidがdatabaseに登録されていたらokの処理
-	//sid, _ := url.QueryUnescape(cookie.Value)
-	//session := manager.SessionRead(sid, userId)
-	//_ = session
-	//}
+	}
 	return
 }
 
-func (Manager *MANAGER) NewSession(sid string, userId string) *Session {
+func (Manager *MANAGER) NewSession(sid string, userId string) (session *Session) {
 	sv := make(map[string]string)
-	sv["ID"] = userId
-	newSession := &Session{sid: sid, timeAccessed: time.Now(), SessionValue: sv}
-	return newSession
+	sv["userId"] = userId
+	return &Session{sid: sid, timeAccessed: time.Now(), SessionValue: sv}
 }
 
 func (Manager *MANAGER) SidCheck(w http.ResponseWriter, r *http.Request) bool {

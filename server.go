@@ -5,7 +5,6 @@ import (
 	"goserver/routers"
 	"net/http"
 	"regexp"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -18,7 +17,7 @@ func (mux MyMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var resistration = regexp.MustCompile(`/resistration`)
 	var logout = regexp.MustCompile(`/logout`)
 	var withdrawal = regexp.MustCompile(`/withdrawal`)
-	var dirUnderMypage = regexp.MustCompile(`/mypage/.*`)
+	var dirOfChatroom = regexp.MustCompile(`/mypage/.*`)
 	url := r.URL.Path
 
 	switch { //r.URL.Path {
@@ -32,7 +31,7 @@ func (mux MyMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		routers.LogoutHandler(w, r)
 	case withdrawal.MatchString(url):
 		routers.WithdrawalHandler(w, r)
-	case dirUnderMypage.MatchString(url):
+	case dirOfChatroom.MatchString(url):
 		routers.ChatroomHandler(w, r)
 	default:
 		url := r.URL.Path

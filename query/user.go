@@ -9,36 +9,36 @@ import (
 
 // マスタからSELECTしたデータをマッピングする構造体
 type User struct {
-	UserId   string `db:"ID"`       // ID
+	UserId   string `db:"USER_ID"`  // ID
 	Password string `db:"PASSWORD"` // パスワード
 }
 
-var confDB *config.Config
-var ConStr string
+var confDbUsr *config.ConfigUsr
+var ConStrUsr string
 
 func init() {
-	_confDB, err := config.ReadConfDB()
+	_confDbUsr, err := config.ReadConfDbUsr()
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	confDB = _confDB
-	_conStr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s", confDB.User, confDB.Pass, confDB.Host, confDB.Port, confDB.DbName, confDB.Charset)
-	ConStr = _conStr
+	confDbUsr = _confDbUsr
+	_conStrUsr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s", confDbUsr.User, confDbUsr.Pass, confDbUsr.Host, confDbUsr.Port, confDbUsr.DbName, confDbUsr.Charset)
+	ConStrUsr = _conStrUsr
 }
 
 // データ登録関数
-func InsertUser(id string, password string, db *sql.DB) bool {
+func InsertUser(userId string, password string, db *sql.DB) bool {
 
 	//ユーザー名・パスの両方が重複したときの処理書く！！
 	// プリペアードステートメント
-	stmt, err := db.Prepare("INSERT INTO USERS(ID,PASSWORD) VALUES(?,?)")
+	stmt, err := db.Prepare("INSERT INTO USERS(USER_ID,PASSWORD) VALUES(?,?)")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	defer stmt.Close()
 
 	// クエリ実行
-	insertedOrNot, err := stmt.Exec(id, password)
+	insertedOrNot, err := stmt.Exec(userId, password)
 	if err != nil {
 		return false
 	} else {
@@ -48,28 +48,25 @@ func InsertUser(id string, password string, db *sql.DB) bool {
 }
 
 // 単一行データ取得関数
-func SelectUserById(id string, db *sql.DB) (userinfo User) {
-
-	// 構造体USER型の変数userを宣言
-	user := User{}
+func SelectUserById(userId string, db *sql.DB) (user User) {
 
 	// プリペアードステートメント
-	err := db.QueryRow("SELECT ID,PASSWORD FROM USERS WHERE ID = ?", id).Scan(&user.UserId, &user.Password)
+	err := db.QueryRow("SELECT USER_ID,PASSWORD FROM USERS WHERE USER_ID = ?", userId).Scan(&user.UserId, &user.Password)
 	if err != nil {
 		return
 	}
-	return user
+	return
 }
 
 //単一行データ削除関数
-func DeleteUserById(id string, db *sql.DB) bool {
+func DeleteUserById(userId string, db *sql.DB) bool {
 
-	stmt, err := db.Prepare("DELETE FROM USERS WHERE ID = ?")
+	stmt, err := db.Prepare("DELETE FROM USERS WHERE USER_ID = ?")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	defer stmt.Close()
-	deletedOrNot, err := stmt.Exec(id)
+	deletedOrNot, err := stmt.Exec(userId)
 	if err != nil {
 		return false
 	} else {
@@ -79,8 +76,7 @@ func DeleteUserById(id string, db *sql.DB) bool {
 }
 
 //全ユーザー取得関数
-func SelectAllUser(db *sql.DB) []User {
-	var users []User
+func SelectAllUser(db *sql.DB) (users []User) {
 
 	// プリペアードステートメント
 	rows, err := db.Query("SELECT * FROM USERS")
@@ -96,7 +92,7 @@ func SelectAllUser(db *sql.DB) []User {
 		}
 		users = append(users, user)
 	}
-	return users
+	return
 }
 
 //ユーザー名重複確認関数

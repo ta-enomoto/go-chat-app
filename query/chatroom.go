@@ -8,46 +8,47 @@ import (
 	"time"
 )
 
-type CHATROOM struct {
+type Chatroom struct {
 	Id       int
 	UserId   string
 	RoomName string
 	Member   string
 }
 
-type CHAT struct {
-	Id       int
-	UserId   string
-	RoomName string
-	Member   string
-	Chat     string
+type Chat struct {
+	//Id       int
+	//UserId   string
+	//RoomName string
+	//Member   string
+	Chatroom Chatroom
+	Chat     string //chatsに変えるべき
 	PostDt   time.Time
 }
 
-var confDBCR *config.ConfigCR
-var ConStrCR string
+var confDbChtrm *config.ConfigChtrm
+var ConStrChtrm string
 
 func init() {
-	_confDBCR, err := config.ReadConfDBCR()
+	_confDbChtrm, err := config.ReadConfDbChtrm()
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	confDBCR = _confDBCR
-	_conStrCR := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=%s", confDBCR.User, confDBCR.Pass, confDBCR.Host, confDBCR.Port, confDBCR.DbName, confDBCR.Charset)
-	ConStrCR = _conStrCR
+	confDbChtrm = _confDbChtrm
+	_conStrChtrm := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=%s", confDbChtrm.User, confDbChtrm.Pass, confDbChtrm.Host, confDbChtrm.Port, confDbChtrm.DbName, confDbChtrm.Charset)
+	ConStrChtrm = _conStrChtrm
 }
 
 // 新規チャットルーム登録関数
 func InsertChatroom(userSessionVal string, roomName string, memberName string, db *sql.DB) bool {
 
-	newChatroom := CHATROOM{UserId: userSessionVal, RoomName: roomName, Member: memberName}
+	newChatroom := Chatroom{UserId: userSessionVal, RoomName: roomName, Member: memberName}
 	chatrooms := SelectAllChatroomsByUserId(userSessionVal, db)
 	roomExist := contains(chatrooms, newChatroom)
 	if roomExist == true {
 		return false
 	} else {
 		//チャットルームを作成したユーザーからの登録
-		stmt, err := db.Prepare("INSERT INTO chatrooms(USER_ID, ROOM_NAME, MEMBER) VALUES(?,?,?)")
+		stmt, err := db.Prepare("INSERT INTO ROOM_STRUCTS_OF_CHAT(USER_ID, ROOM_NAME, MEMBER) VALUES(?,?,?)")
 		if err != nil {
 			fmt.Println(err.Error())
 		}
@@ -63,20 +64,16 @@ func InsertChatroom(userSessionVal string, roomName string, memberName string, d
 }
 
 //特定のユーザーが作成したチャットルームをすべて取得する
-func SelectAllChatroomsByUserId(userSessionVal string, db *sql.DB) []CHATROOM {
-
-	// 構造体CHATROOM型の変数chatroomを宣言
-
-	var chatrooms []CHATROOM
+func SelectAllChatroomsByUserId(userSessionVal string, db *sql.DB) (chatrooms []Chatroom) {
 
 	// プリペアードステートメント
-	rows, err := db.Query("SELECT * FROM chatrooms WHERE USER_ID = ?", userSessionVal)
+	rows, err := db.Query("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE USER_ID = ?", userSessionVal)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
 	for rows.Next() {
-		chatroom := CHATROOM{}
+		chatroom := Chatroom{}
 		err := rows.Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -84,21 +81,20 @@ func SelectAllChatroomsByUserId(userSessionVal string, db *sql.DB) []CHATROOM {
 		chatrooms = append(chatrooms, chatroom)
 		fmt.Println(chatrooms)
 	}
-	return chatrooms
+	return
 }
 
 //特定のユーザーがメンバーとして参加しているチャットルームをすべて取得する
-func SelectAllChatroomsByMember(userSessionVal string, db *sql.DB) []CHATROOM {
-	var chatrooms []CHATROOM
+func SelectAllChatroomsByMember(userSessionVal string, db *sql.DB) (chatrooms []Chatroom) {
 
 	// プリペアードステートメント
-	rows, err := db.Query("SELECT * FROM chatrooms WHERE Member = ?", userSessionVal)
+	rows, err := db.Query("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE Member = ?", userSessionVal)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
 	for rows.Next() {
-		chatroom := CHATROOM{}
+		chatroom := Chatroom{}
 		err := rows.Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -106,14 +102,14 @@ func SelectAllChatroomsByMember(userSessionVal string, db *sql.DB) []CHATROOM {
 		chatrooms = append(chatrooms, chatroom)
 		fmt.Println(chatrooms)
 	}
-	return chatrooms
+	return
 }
 
 // 特定のルームを取得する
-/*func SelectChatroomByUser(userId string, db *sql.DB) CHATROOM {
+/*func SelectChatroomByUser(userId string, db *sql.DB) Chatroom {
 
 	// 構造体CHATROOM型の変数chatroomを宣言
-	chatroom := CHATROOM{}
+	chatroom := Chatroom{}
 
 	// プリペアードステートメント
 	err := db.QueryRow("SELECT ID, USER_ID, ROOM_NAME, MEMBER FROM chatroom WHERE USER_ID = ?", userId).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
@@ -123,34 +119,28 @@ func SelectAllChatroomsByMember(userSessionVal string, db *sql.DB) []CHATROOM {
 	return chatroom
 }*/
 
-func SelectChatroomById(id int, db *sql.DB) CHATROOM {
-
-	// 構造体CHATROOM型の変数chatroomを宣言
-	chatroom := CHATROOM{}
+func SelectChatroomById(id int, db *sql.DB) (chatroom Chatroom) {
 
 	// プリペアードステートメント
-	err := db.QueryRow("SELECT * FROM chatrooms WHERE ID = ?", id).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
+	err := db.QueryRow("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE ID = ?", id).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	return chatroom
+	return
 }
 
-func SelectChatroomByUser(userId string, db *sql.DB) CHATROOM {
-
-	// 構造体CHATROOM型の変数chatroomを宣言
-	chatroom := CHATROOM{}
+func SelectChatroomByUser(userId string, db *sql.DB) (chatroom Chatroom) {
 
 	// プリペアードステートメント
-	err := db.QueryRow("SELECT ID, USER_ID, ROOM_NAME, MEMBER FROM chatrooms WHERE USER_ID = ?").Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
+	err := db.QueryRow("SELECT ID, USER_ID, ROOM_NAME, MEMBER FROM ROOM_STRUCTS_OF_CHAT WHERE USER_ID = ?").Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	return chatroom
+	return
 }
 
 //チャットルームの重複をチェックする
-func contains(s []CHATROOM, e CHATROOM) bool {
+func contains(s []Chatroom, e Chatroom) bool {
 	for _, v := range s {
 		if e == v {
 			return true
@@ -160,33 +150,30 @@ func contains(s []CHATROOM, e CHATROOM) bool {
 }
 
 //特定のチャットルームのチャットをすべて取得する
-func SelectAllChatById(id int, db *sql.DB) []CHAT {
-
-	var chats []CHAT
+func SelectAllChatById(id int, db *sql.DB) (chats []Chat) {
 
 	// プリペアードステートメント
-	rows, err := db.Query("SELECT * FROM chat WHERE ID = ?", id)
+	rows, err := db.Query("SELECT * FROM ALL_STRUCTS_OF_CHAT WHERE ID = ?", id)
 	if err != nil {
 		return chats
 	}
 
 	for rows.Next() {
-		chat := CHAT{}
-		err := rows.Scan(&chat.Id, &chat.UserId, &chat.RoomName, &chat.Member, &chat.Chat, &chat.PostDt)
+		chat := Chat{}
+		err := rows.Scan(&chat.Chatroom.Id, &chat.Chatroom.UserId, &chat.Chatroom.RoomName, &chat.Chatroom.Member, &chat.Chat, &chat.PostDt)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 		chats = append(chats, chat)
 		fmt.Println(chats)
 	}
-	return chats
+	return
 }
 
 // 新規チャット投稿関数
 func InsertChat(id int, userId string, roomName string, member string, chat string, postDt time.Time, db *sql.DB) bool {
 
-	//newChat := CHAT{UserId: userId, RoomName: roomName, Member: member, Chat: chat, PostDt: postDt}
-	stmt, err := db.Prepare("INSERT INTO chat(ID, USER_ID, ROOM_NAME, MEMBER, CHAT, POST_DT) VALUES(?,?,?,?,?,?)")
+	stmt, err := db.Prepare("INSERT INTO ALL_STRUCTS_OF_CHAT(ID, USER_ID, ROOM_NAME, MEMBER, Chat, POST_DT) VALUES(?,?,?,?,?,?)")
 	if err != nil {
 		fmt.Println(err.Error())
 	}

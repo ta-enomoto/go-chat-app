@@ -6,7 +6,7 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-type ConfDB struct {
+type ConfDbUsr struct {
 	Host    string `toml:"host"`    // ホスト名
 	Port    int    `toml:"port"`    // ポート番号
 	DbName  string `toml:"db-name"` // 接続先DB名
@@ -15,24 +15,24 @@ type ConfDB struct {
 	Pass    string // 接続パスワード
 }
 
-type Config struct {
-	ConfDB `toml:"database1"`
+type ConfigUsr struct {
+	ConfDbUsr `toml:"database1"`
 }
 
 // URL設定の構造体
-func ReadConfDB() (*Config, error) {
+func ReadConfDbUsr() (*ConfigUsr, error) {
 
 	// 設定ファイル名
 	confpath := "config/db.toml"
 
 	// 構造体を初期化
-	conf := new(Config)
+	conf := new(ConfigUsr)
 
 	// 読み込んだjson文字列をデコードし構造体にセット
 	_, err := toml.DecodeFile(confpath, &conf)
 	if err != nil {
 		return conf, err
 	}
-	conf.ConfDB.Pass = os.Getenv("PASSWORD1")
+	conf.ConfDbUsr.Pass = os.Getenv("PASSWORD1")
 	return conf, nil
 }

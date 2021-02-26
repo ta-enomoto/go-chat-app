@@ -26,13 +26,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
 		} else {
 			// データベース接続
-			db, err := sql.Open("mysql", query.ConStr)
+			dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 			// deferで処理終了前に必ず接続をクローズする
-			defer db.Close()
-			user := query.SelectUserById(accessingUser.UserId, db)
+			defer dbUsr.Close()
+			user := query.SelectUserById(accessingUser.UserId, dbUsr)
 			if accessingUser.UserId == user.UserId && accessingUser.Password == user.Password {
 				//if文でsessionstartがうまくいった時というふうに(ブラウザで/に戻った時、sid出し直してる)
 				session.Manager.SessionStart(w, r, accessingUser.UserId)

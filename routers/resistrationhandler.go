@@ -23,12 +23,12 @@ func ResistrationHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
 		} else {
 			// データベース接続
-			db, err := sql.Open("mysql", query.ConStr)
+			dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			defer db.Close()
-			insertedUser := query.InsertUser(newUser.UserId, newUser.Password, db)
+			defer dbUsr.Close()
+			insertedUser := query.InsertUser(newUser.UserId, newUser.Password, dbUsr)
 			if insertedUser == true {
 				t := template.Must(template.ParseFiles("./templates/resistrationcompleted.html"))
 				t.ExecuteTemplate(w, "resistrationcompleted.html", nil)

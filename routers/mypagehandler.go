@@ -16,17 +16,17 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		if ok := session.Manager.SidCheck(w, r); ok {
 			t := template.Must(template.ParseFiles("./templates/mypage.html"))
 			// データベース接続
-			dbCR, err := sql.Open("mysql", query.ConStrCR)
+			dbChtrm, err := sql.Open("mysql", query.ConStrChtrm)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 			// deferで処理終了前に必ず接続をクローズする
-			defer dbCR.Close()
+			defer dbChtrm.Close()
 			userCookie, _ := r.Cookie(session.Manager.CookieName)
 			userSid, _ := url.QueryUnescape(userCookie.Value)
-			userSessionVar := session.Manager.Database[userSid].SessionValue["ID"]
-			chatroomsFromUserId := query.SelectAllChatroomsByUserId(userSessionVar, dbCR)
-			chatroomsFromMember := query.SelectAllChatroomsByMember(userSessionVar, dbCR)
+			userSessionVar := session.Manager.Database[userSid].SessionValue["userId"]
+			chatroomsFromUserId := query.SelectAllChatroomsByUserId(userSessionVar, dbChtrm)
+			chatroomsFromMember := query.SelectAllChatroomsByMember(userSessionVar, dbChtrm)
 
 			var Links = append(chatroomsFromUserId, chatroomsFromMember...)
 
@@ -46,7 +46,7 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	case "POST":
 		if ok := session.Manager.SidCheck(w, r); ok {
-			newchatroom := new(query.CHATROOM)
+			newchatroom := new(query.Chatroom)
 			newchatroom.RoomName = r.FormValue("roomName")
 			newchatroom.Member = r.FormValue("memberName")
 			if newchatroom.RoomName == "" || newchatroom.Member == "" {
@@ -54,24 +54,24 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				userCookie, _ := r.Cookie(session.Manager.CookieName)
 				userSid, _ := url.QueryUnescape(userCookie.Value)
-				userSessionVar := session.Manager.Database[userSid].SessionValue["ID"]
+				userSessionVar := session.Manager.Database[userSid].SessionValue["userId"]
 
 				//ユーザー名の存在チェック
-				db, err := sql.Open("mysql", query.ConStr)
+				dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 				if err != nil {
 					fmt.Println(err.Error())
 				}
-				defer db.Close()
-				users := query.SelectAllUser(db)
+				defer dbUsr.Close()
+				users := query.SelectAllUser(dbUsr)
 				userIdExist := query.ContainsUserName(users, newchatroom.Member)
 
 				if userIdExist == true {
-					dbCR, err := sql.Open("mysql", query.ConStrCR)
+					dbChtrm, err := sql.Open("mysql", query.ConStrChtrm)
 					if err != nil {
 						fmt.Println(err.Error())
 					}
-					defer dbCR.Close()
-					inserted := query.InsertChatroom(userSessionVar, newchatroom.RoomName, newchatroom.Member, dbCR)
+					defer dbChtrm.Close()
+					inserted := query.InsertChatroom(userSessionVar, newchatroom.RoomName, newchatroom.Member, dbChtrm)
 					if inserted == true {
 						fmt.Fprintf(w, "新しいルームが作成されました")
 					} else {
