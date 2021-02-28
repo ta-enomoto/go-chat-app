@@ -15,25 +15,24 @@ func WithdrawalHandler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		t := template.Must(template.ParseFiles("./templates/withdrawal.html"))
 		t.ExecuteTemplate(w, "withdrawal.html", nil)
+
+	//削除するユーザーのID・パスワードがポストされたときの処理
 	case "POST":
 		deleteUser := new(query.User)
 		deleteUser.UserId = r.FormValue("userId")
 		deleteUser.Password = r.FormValue("password")
 
-		// データベース接続
 		dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		// deferで処理終了前に必ず接続をクローズする
 		defer dbUsr.Close()
 
 		user := query.SelectUserById(deleteUser.UserId, dbUsr)
 		if deleteUser.UserId == user.UserId && deleteUser.Password == user.Password {
 			deleted := query.DeleteUserById(deleteUser.UserId, dbUsr)
 			if deleted == true {
-				//削除完了時の処理
-				session.Manager.SessionDestroy(w, r)
+				session.Manager.DeleteSessionFromStore(w, r)
 				t := template.Must(template.ParseFiles("./templates/withdrawalcompleted.html"))
 				t.ExecuteTemplate(w, "withdrawalcompleted.html", nil)
 			}

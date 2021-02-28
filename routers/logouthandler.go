@@ -9,7 +9,7 @@ import (
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		session.Manager.SessionDestroy(w, r)
+		session.Manager.DeleteSessionFromStore(w, r)
 		t := template.Must(template.ParseFiles("./templates/logout.html"))
 		t.ExecuteTemplate(w, "logout.html", nil)
 	}

@@ -18,25 +18,42 @@ type Session struct {
 	Manager      *MANAGER
 }
 
+//セッションマネージャ構造体
 type MANAGER struct {
-	Database    map[interface{}]*Session
-	CookieName  string
-	maxlifetime int64
+	SessionStore map[interface{}]*Session
+	CookieName   string
+	maxlifetime  int64
 }
 
 var Manager *MANAGER
 
+//サーバー起動時にセッションマネージャも初期化
 func init() {
 	_manager := NewManager("cookieName", 3600)
 	Manager = _manager
 }
 
+//init()でセッションマネージャ初期化時に使う関数
 func NewManager(cookieName string, maxlifetime int64) *MANAGER {
 	database := make(map[interface{}]*Session)
-	return &MANAGER{Database: database, CookieName: cookieName, maxlifetime: maxlifetime}
+	return &MANAGER{SessionStore: database, CookieName: cookieName, maxlifetime: maxlifetime}
 }
 
-//新規sid発行
+//新規セッションを開始する関数(セッション変数はマネージャのDatabaseマップに保存)
+func (Manager *MANAGER) SessionStart(w http.ResponseWriter, r *http.Request, userId string) (session *Session) {
+	cookie, err := r.Cookie(Manager.CookieName)
+	if err != nil || cookie.Value == "" {
+		sid := Manager.NewSessionId()
+		session := Manager.NewSession(sid, userId)
+		cookie := http.Cookie{Name: Manager.CookieName, Value: url.QueryEscape(sid), Path: "/", HttpOnly: true, MaxAge: int(Manager.maxlifetime)}
+
+		http.SetCookie(w, &cookie)
+		Manager.SessionStore[sid] = session
+	}
+	return
+}
+
+//新規セッション”id”を発行する関数(SessionStart関数で使用)
 func (Manager *MANAGER) NewSessionId() string {
 	b := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {
@@ -45,36 +62,24 @@ func (Manager *MANAGER) NewSessionId() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-//新規セッションの生成
-func (Manager *MANAGER) SessionStart(w http.ResponseWriter, r *http.Request, userId string) (session *Session) {
-	cookie, err := r.Cookie(Manager.CookieName)
-	if err != nil || cookie.Value == "" {
-		sid := Manager.NewSessionId()
-		fmt.Println(sid)
-		session := Manager.NewSession(sid, userId)
-		cookie := http.Cookie{Name: Manager.CookieName, Value: url.QueryEscape(sid), Path: "/", HttpOnly: true, MaxAge: int(Manager.maxlifetime)}
-		http.SetCookie(w, &cookie)
-		Manager.Database[sid] = session
-		fmt.Println(Manager.Database)
-	}
-	return
-}
-
+//新規セッション(マップ)を作成するための関数(SessionStart関数で使用)
 func (Manager *MANAGER) NewSession(sid string, userId string) (session *Session) {
 	sv := make(map[string]string)
+
 	sv["userId"] = userId
 	return &Session{sid: sid, timeAccessed: time.Now(), SessionValue: sv}
 }
 
-func (Manager *MANAGER) SidCheck(w http.ResponseWriter, r *http.Request) bool {
+//クライアントのクッキーid(セッションid)が、マネージャのDatabaseマップに登録されてるかチェックする関数
+func (Manager *MANAGER) SessionIdCheck(w http.ResponseWriter, r *http.Request) bool {
 	clientCookie, err := r.Cookie(Manager.CookieName)
 	if err != nil {
 		return false
 	} else {
 		clientSid, _ := url.QueryUnescape(clientCookie.Value)
-		if _, ok := Manager.Database[clientSid]; ok {
-			if (Manager.Database[clientSid].timeAccessed.Unix() + Manager.maxlifetime) > time.Now().Unix() {
-				Manager.Database[clientSid].timeAccessed = time.Now()
+		if _, ok := Manager.SessionStore[clientSid]; ok {
+			if (Manager.SessionStore[clientSid].timeAccessed.Unix() + Manager.maxlifetime) > time.Now().Unix() {
+				Manager.SessionStore[clientSid].timeAccessed = time.Now()
 				return true
 			} else {
 				return false
@@ -86,23 +91,16 @@ func (Manager *MANAGER) SidCheck(w http.ResponseWriter, r *http.Request) bool {
 
 }
 
-func (Manager *MANAGER) SessionDestroy(w http.ResponseWriter, r *http.Request) error {
+//ログアウト時、セッションを削除マネージャのDatabaseマップから削除する関数
+func (Manager *MANAGER) DeleteSessionFromStore(w http.ResponseWriter, r *http.Request) error {
 	clientCookie, err := r.Cookie(Manager.CookieName)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	clientSid, _ := url.QueryUnescape(clientCookie.Value)
-	delete(Manager.Database, clientSid)
+	delete(Manager.SessionStore, clientSid)
+
 	clientCookie.MaxAge = -1
 	http.SetCookie(w, clientCookie)
 	return nil
 }
-
-//func (manager *Manager) SessionRead(sid string, userId string) *Session {
-//	if existingSession, ok := manager.Database[sid]; ok {
-//		return existingSession
-//	} else {
-//		newsess := manager.NewSession(sid, userId)
-//		return newsess
-//	}
-//}

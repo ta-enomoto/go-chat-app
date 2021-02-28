@@ -1,3 +1,4 @@
+//チャット情報を扱うクエリパッケージ
 package query
 
 import (
@@ -8,6 +9,15 @@ import (
 	"time"
 )
 
+/*チャットルームごとにtableを動的に生成できないため、
+ルーム情報とチャット情報を分け、別々のdbに保存する。
+①マイページではルーム情報のみ扱う
+②アクセスがあったら、ルーム情報を元にチャットを取得する*/
+
+/*チャットルーム構造体(テーブル「ROOM_STRUCTS_OF_CHAT」に保存)
+マイページでルーム情報だけ取得するために使用
+チャット情報からルーム情報を抽出しようとすると処理が重くなる
+(チャットルームはIDがPKになっているため重複がない)*/
 type Chatroom struct {
 	Id       int
 	UserId   string
@@ -15,13 +25,13 @@ type Chatroom struct {
 	Member   string
 }
 
+/*チャット構造体(テーブル「ALL_STRUCTS_OF_CHAT」に保存)
+各チャットルーム内で投稿された書き込みの情報
+ルームの情報はチャットルーム構造体と共通
+*/
 type Chat struct {
-	//Id       int
-	//UserId   string
-	//RoomName string
-	//Member   string
 	Chatroom Chatroom
-	Chat     string //chatsに変えるべき
+	Chat     string
 	PostDt   time.Time
 }
 
@@ -66,7 +76,6 @@ func InsertChatroom(userSessionVal string, roomName string, memberName string, d
 //特定のユーザーが作成したチャットルームをすべて取得する
 func SelectAllChatroomsByUserId(userSessionVal string, db *sql.DB) (chatrooms []Chatroom) {
 
-	// プリペアードステートメント
 	rows, err := db.Query("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE USER_ID = ?", userSessionVal)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -87,7 +96,6 @@ func SelectAllChatroomsByUserId(userSessionVal string, db *sql.DB) (chatrooms []
 //特定のユーザーがメンバーとして参加しているチャットルームをすべて取得する
 func SelectAllChatroomsByMember(userSessionVal string, db *sql.DB) (chatrooms []Chatroom) {
 
-	// プリペアードステートメント
 	rows, err := db.Query("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE Member = ?", userSessionVal)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -105,23 +113,8 @@ func SelectAllChatroomsByMember(userSessionVal string, db *sql.DB) (chatrooms []
 	return
 }
 
-// 特定のルームを取得する
-/*func SelectChatroomByUser(userId string, db *sql.DB) Chatroom {
-
-	// 構造体CHATROOM型の変数chatroomを宣言
-	chatroom := Chatroom{}
-
-	// プリペアードステートメント
-	err := db.QueryRow("SELECT ID, USER_ID, ROOM_NAME, MEMBER FROM chatroom WHERE USER_ID = ?", userId).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	return chatroom
-}*/
-
 func SelectChatroomById(id int, db *sql.DB) (chatroom Chatroom) {
 
-	// プリペアードステートメント
 	err := db.QueryRow("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE ID = ?", id).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -131,7 +124,6 @@ func SelectChatroomById(id int, db *sql.DB) (chatroom Chatroom) {
 
 func SelectChatroomByUser(userId string, db *sql.DB) (chatroom Chatroom) {
 
-	// プリペアードステートメント
 	err := db.QueryRow("SELECT ID, USER_ID, ROOM_NAME, MEMBER FROM ROOM_STRUCTS_OF_CHAT WHERE USER_ID = ?").Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -152,7 +144,6 @@ func contains(s []Chatroom, e Chatroom) bool {
 //特定のチャットルームのチャットをすべて取得する
 func SelectAllChatById(id int, db *sql.DB) (chats []Chat) {
 
-	// プリペアードステートメント
 	rows, err := db.Query("SELECT * FROM ALL_STRUCTS_OF_CHAT WHERE ID = ?", id)
 	if err != nil {
 		return chats
@@ -178,7 +169,7 @@ func InsertChat(id int, userId string, roomName string, member string, chat stri
 		fmt.Println(err.Error())
 	}
 	defer stmt.Close()
-	fmt.Println(id, userId, roomName, member, chat, postDt)
+
 	insertedOrNot1, err := stmt.Exec(id, userId, roomName, member, chat, postDt)
 	if err != nil {
 		return false

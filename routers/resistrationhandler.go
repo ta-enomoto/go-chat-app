@@ -1,3 +1,4 @@
+//ユーザー登録ページにアクセスがあったときのハンドラ
 package routers
 
 import (
@@ -14,6 +15,7 @@ func ResistrationHandler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		t := template.Must(template.ParseFiles("./templates/resistration.html"))
 		t.ExecuteTemplate(w, "resistration.html", nil)
+
 	case "POST":
 		newUser := new(query.User)
 		newUser.UserId = r.FormValue("userId")
@@ -22,12 +24,12 @@ func ResistrationHandler(w http.ResponseWriter, r *http.Request) {
 		if newUser.UserId == "" || newUser.Password == "" {
 			fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
 		} else {
-			// データベース接続
 			dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 			defer dbUsr.Close()
+
 			insertedUser := query.InsertUser(newUser.UserId, newUser.Password, dbUsr)
 			if insertedUser == true {
 				t := template.Must(template.ParseFiles("./templates/resistrationcompleted.html"))

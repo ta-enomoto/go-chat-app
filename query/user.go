@@ -1,4 +1,5 @@
-package query // 独自のクエリパッケージ
+//ユーザー情報を扱うクエリパッケージ
+package query
 
 import (
 	"database/sql"
@@ -26,18 +27,16 @@ func init() {
 	ConStrUsr = _conStrUsr
 }
 
-// データ登録関数
+// ユーザーをdbに登録する関数
 func InsertUser(userId string, password string, db *sql.DB) bool {
 
 	//ユーザー名・パスの両方が重複したときの処理書く！！
-	// プリペアードステートメント
 	stmt, err := db.Prepare("INSERT INTO USERS(USER_ID,PASSWORD) VALUES(?,?)")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	defer stmt.Close()
 
-	// クエリ実行
 	insertedOrNot, err := stmt.Exec(userId, password)
 	if err != nil {
 		return false
@@ -47,10 +46,9 @@ func InsertUser(userId string, password string, db *sql.DB) bool {
 	}
 }
 
-// 単一行データ取得関数
+//ユーザーIDと一致するユーザー情報をdbから取得する関数
 func SelectUserById(userId string, db *sql.DB) (user User) {
 
-	// プリペアードステートメント
 	err := db.QueryRow("SELECT USER_ID,PASSWORD FROM USERS WHERE USER_ID = ?", userId).Scan(&user.UserId, &user.Password)
 	if err != nil {
 		return
@@ -58,7 +56,7 @@ func SelectUserById(userId string, db *sql.DB) (user User) {
 	return
 }
 
-//単一行データ削除関数
+//ユーザーIDに一致するユーザーをdbから削除する関数。ハンドラでチェックはしてるが関数内でもパスも一致させたほうがいいかも
 func DeleteUserById(userId string, db *sql.DB) bool {
 
 	stmt, err := db.Prepare("DELETE FROM USERS WHERE USER_ID = ?")
@@ -66,6 +64,7 @@ func DeleteUserById(userId string, db *sql.DB) bool {
 		fmt.Println(err.Error())
 	}
 	defer stmt.Close()
+
 	deletedOrNot, err := stmt.Exec(userId)
 	if err != nil {
 		return false
@@ -75,10 +74,9 @@ func DeleteUserById(userId string, db *sql.DB) bool {
 	}
 }
 
-//全ユーザー取得関数
+//全ユーザー情報をスライスとしてdbから取得する関数
 func SelectAllUser(db *sql.DB) (users []User) {
 
-	// プリペアードステートメント
 	rows, err := db.Query("SELECT * FROM USERS")
 	if err != nil {
 		fmt.Println(err.Error())
@@ -95,7 +93,7 @@ func SelectAllUser(db *sql.DB) (users []User) {
 	return
 }
 
-//ユーザー名重複確認関数
+//ユーザー名が重複していないか確認する関数
 func ContainsUserName(s []User, e string) bool {
 	for _, v := range s {
 		if e == v.UserId {
