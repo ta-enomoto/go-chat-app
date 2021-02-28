@@ -30,7 +30,6 @@ func init() {
 // ユーザーをdbに登録する関数
 func InsertUser(userId string, password string, db *sql.DB) bool {
 
-	//ユーザー名・パスの両方が重複したときの処理書く！！
 	stmt, err := db.Prepare("INSERT INTO USERS(USER_ID,PASSWORD) VALUES(?,?)")
 	if err != nil {
 		fmt.Println(err.Error())

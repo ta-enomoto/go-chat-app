@@ -23,20 +23,27 @@ func ResistrationHandler(w http.ResponseWriter, r *http.Request) {
 
 		if newUser.UserId == "" || newUser.Password == "" {
 			fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
-		} else {
-			dbUsr, err := sql.Open("mysql", query.ConStrUsr)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			defer dbUsr.Close()
+			return
+		}
 
-			insertedUser := query.InsertUser(newUser.UserId, newUser.Password, dbUsr)
-			if insertedUser == true {
-				t := template.Must(template.ParseFiles("./templates/resistrationcompleted.html"))
-				t.ExecuteTemplate(w, "resistrationcompleted.html", nil)
-			} else {
-				fmt.Fprintf(w, "既に登録されているIDです")
-			}
+		dbUsr, err := sql.Open("mysql", query.ConStrUsr)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		defer dbUsr.Close()
+
+		users := query.SelectAllUser(dbUsr)
+
+		userIdAlreadyExists := query.ContainsUserName(users, newUser.UserId)
+		if userIdAlreadyExists {
+			fmt.Fprintf(w, "既に登録されているIDです")
+			return
+		}
+
+		insertedUser := query.InsertUser(newUser.UserId, newUser.Password, dbUsr)
+		if insertedUser {
+			t := template.Must(template.ParseFiles("./templates/resistrationcompleted.html"))
+			t.ExecuteTemplate(w, "resistrationcompleted.html", nil)
 		}
 	}
 }

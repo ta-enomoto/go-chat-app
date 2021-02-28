@@ -30,14 +30,14 @@ func WithdrawalHandler(w http.ResponseWriter, r *http.Request) {
 
 		user := query.SelectUserById(deleteUser.UserId, dbUsr)
 		if deleteUser.UserId == user.UserId && deleteUser.Password == user.Password {
-			deleted := query.DeleteUserById(deleteUser.UserId, dbUsr)
-			if deleted == true {
-				session.Manager.DeleteSessionFromStore(w, r)
-				t := template.Must(template.ParseFiles("./templates/withdrawalcompleted.html"))
-				t.ExecuteTemplate(w, "withdrawalcompleted.html", nil)
-			}
-		} else {
 			fmt.Fprintf(w, "IDまたはパスワードが間違っています")
+			return
+		}
+		userDeletedFromDb := query.DeleteUserById(deleteUser.UserId, dbUsr)
+		if userDeletedFromDb {
+			session.Manager.DeleteSessionFromStore(w, r)
+			t := template.Must(template.ParseFiles("./templates/withdrawalcompleted.html"))
+			t.ExecuteTemplate(w, "withdrawalcompleted.html", nil)
 		}
 	}
 }

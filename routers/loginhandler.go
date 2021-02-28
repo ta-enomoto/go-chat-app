@@ -41,24 +41,5 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fmt.Fprintf(w, "IDまたはパスワードが間違っています。")
 		}
-		/*
-			if accessingUser.UserId == "" || accessingUser.Password == "" {
-				fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
-			} else {
-				dbUsr, err := sql.Open("mysql", query.ConStrUsr)
-				if err != nil {
-					fmt.Println(err.Error())
-				}
-				defer dbUsr.Close()
-
-				user := query.SelectUserById(accessingUser.UserId, dbUsr)
-				if accessingUser.UserId == user.UserId && accessingUser.Password == user.Password {
-					//if文でsessionstartがうまくいった時というふうに(ブラウザで/に戻った時、sid出し直してる)
-					session.Manager.SessionStart(w, r, accessingUser.UserId)
-					http.Redirect(w, r, "/mypage", 301)
-				} else {
-					fmt.Fprintf(w, "IDまたはパスワードが間違っています。")
-				}
-		*/
 	}
 }
