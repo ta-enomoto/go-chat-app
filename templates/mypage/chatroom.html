@@ -15,7 +15,40 @@
   <form action="" method="post">
     <p>新規投稿：<input type="text" id="chat" name="chat"></p>
     <p><input type="submit" value="書き込む" id="chat" name="chat"></p>
+    <button onclick="send();">send msg</button>
   </form>
   <a href="/mypage">マイページに戻る</a>
+  
+  <form action="" method="post">
+    <p></p>
+    <p></p>
+    <p><input type="submit" value="削除する" id="delete-room" name="delete-room"></p>
+  </form>
+  <script type="text/javascript">
+    var socket = null;
+    var data = "";
+    var wsuri = "ws://localhost:8080/wsserver";
+    window.onload = function() {
+        console.log("onload");
+      socket = new WebSocket(wsuri);
+
+        socket.onopen = function() {
+          console.log("connected");
+        }
+      
+        socket.onclose = function(e) {
+          console.log("connection closed");
+        }
+      
+        socket.onmessage = function(e) {
+          console.log("message recieved" + e.data);
+        }
+      };
+      
+      function send() {
+        var chat = document.getElementById('chat').value;
+        socket.send(chat);
+      };
+  </script>
 </body>
 </html>

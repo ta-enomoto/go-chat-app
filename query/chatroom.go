@@ -54,22 +54,22 @@ func InsertChatroom(userSessionVal string, roomName string, memberName string, d
 	newChatroom := Chatroom{UserId: userSessionVal, RoomName: roomName, Member: memberName}
 	chatrooms := SelectAllChatroomsByUserId(userSessionVal, db)
 	roomExist := contains(chatrooms, newChatroom)
-	if roomExist == true {
+	if roomExist {
+		return false
+	}
+
+	stmt, err := db.Prepare("INSERT INTO ROOM_STRUCTS_OF_CHAT(USER_ID, ROOM_NAME, MEMBER) VALUES(?,?,?)")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer stmt.Close()
+
+	insertedOrNot1, err := stmt.Exec(userSessionVal, roomName, memberName)
+	if err != nil {
 		return false
 	} else {
-		//チャットルームを作成したユーザーからの登録
-		stmt, err := db.Prepare("INSERT INTO ROOM_STRUCTS_OF_CHAT(USER_ID, ROOM_NAME, MEMBER) VALUES(?,?,?)")
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		defer stmt.Close()
-		insertedOrNot1, err := stmt.Exec(userSessionVal, roomName, memberName)
-		if err != nil {
-			return false
-		} else {
-			_ = insertedOrNot1
-			return true
-		}
+		_ = insertedOrNot1
+		return true
 	}
 }
 
@@ -142,7 +142,7 @@ func contains(s []Chatroom, e Chatroom) bool {
 }
 
 //特定のチャットルームのチャットをすべて取得する
-func SelectAllChatById(id int, db *sql.DB) (chats []Chat) {
+func SelectAllChatsById(id int, db *sql.DB) (chats []Chat) {
 
 	rows, err := db.Query("SELECT * FROM ALL_STRUCTS_OF_CHAT WHERE ID = ?", id)
 	if err != nil {
@@ -170,11 +170,43 @@ func InsertChat(id int, userId string, roomName string, member string, chat stri
 	}
 	defer stmt.Close()
 
-	insertedOrNot1, err := stmt.Exec(id, userId, roomName, member, chat, postDt)
+	insertedOrNot, err := stmt.Exec(id, userId, roomName, member, chat, postDt)
 	if err != nil {
 		return false
 	} else {
-		_ = insertedOrNot1
+		_ = insertedOrNot
 		return true
 	}
+}
+
+//チャットルーム削除関数
+func DeleteChatroomById(id int, db *sql.DB) bool {
+
+	stmtDeleteChatroom, err := db.Prepare("DELETE FROM ROOM_STRUCTS_OF_CHAT WHERE ID = ?")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer stmtDeleteChatroom.Close()
+
+	stmtDeleteChat, err := db.Prepare("DELETE FROM ALL_STRUCTS_OF_CHAT WHERE ID = ?")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	defer stmtDeleteChat.Close()
+
+	deletedChatroom, err := stmtDeleteChatroom.Exec(id)
+	if err != nil {
+		return false
+	} else {
+		_ = deletedChatroom
+	}
+
+	deletedChat, err := stmtDeleteChatroom.Exec(id)
+	if err != nil {
+		return false
+	} else {
+		_ = deletedChat
+		return true
+	}
+
 }

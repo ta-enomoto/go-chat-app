@@ -22,6 +22,10 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "セッションの有効期限が切れています")
 			return
 		}
+		//適当にルームIDを変えると、他の人のルームが覗けるので、メンバのルームしかアクセスできないよう処理
+		userCookie, _ := r.Cookie(session.Manager.CookieName)
+		userSid, _ := url.QueryUnescape(userCookie.Value)
+		userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
 
 		roomUrl := r.URL.Path
 		_roomId := strings.TrimPrefix(roomUrl, "/mypage/chatroom")
@@ -34,7 +38,15 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 		defer dbChtrm.Close()
 
 		selectedChatroom := query.SelectChatroomById(roomId, dbChtrm)
-		Chats := query.SelectAllChatById(selectedChatroom.Id, dbChtrm)
+		userId := selectedChatroom.UserId
+		member := selectedChatroom.Member
+
+		if userId != userSessionVar && member != userSessionVar {
+			fmt.Fprintf(w, "ルームにアクセスする権限がありません")
+			return
+		}
+
+		Chats := query.SelectAllChatsById(selectedChatroom.Id, dbChtrm)
 
 		t := template.Must(template.ParseFiles("./templates/mypage/chatroom.html"))
 		t.ExecuteTemplate(w, "chatroom.html", Chats)
@@ -48,49 +60,68 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		newChat := new(query.Chat)
-		newChat.Chat = r.FormValue("chat")
-		if newChat.Chat == "" {
-			fmt.Fprintf(w, "何も入力されていません")
-			return
-		}
-
-		roomUrl := r.URL.Path
-		_roomId := strings.TrimPrefix(roomUrl, "/mypage/chatroom")
-		roomId, _ := strconv.Atoi(_roomId)
-
-		dbChtrm, err := sql.Open("mysql", query.ConStrChtrm)
+		err := r.ParseForm()
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		defer dbChtrm.Close()
+		fmt.Println(r.Form)
+		if r.FormValue("chat") != "" {
+			newChat := new(query.Chat)
+			newChat.Chat = r.FormValue("chat")
+			if newChat.Chat == "" {
+				fmt.Fprintf(w, "何も入力されていません")
+				return
+			}
 
-		currentChatroom := query.SelectChatroomById(roomId, dbChtrm)
+			roomUrl := r.URL.Path
+			_roomId := strings.TrimPrefix(roomUrl, "/mypage/chatroom")
+			roomId, _ := strconv.Atoi(_roomId)
 
-		newChat.Chatroom.Id = currentChatroom.Id
-		newChat.Chatroom.RoomName = currentChatroom.RoomName
+			dbChtrm, err := sql.Open("mysql", query.ConStrChtrm)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			defer dbChtrm.Close()
 
-		userCookie, _ := r.Cookie(session.Manager.CookieName)
-		userSid, _ := url.QueryUnescape(userCookie.Value)
-		userId := session.Manager.SessionStore[userSid].SessionValue["userId"]
+			currentChatroom := query.SelectChatroomById(roomId, dbChtrm)
 
-		if userId == currentChatroom.UserId {
-			//投稿主と部屋作成者が同じ場合
-			newChat.Chatroom.UserId = userId
-			newChat.Chatroom.Member = currentChatroom.Member
-		} else {
-			//投稿主と部屋作成者が違う場合
-			newChat.Chatroom.UserId = currentChatroom.Member
-			newChat.Chatroom.Member = currentChatroom.UserId
+			newChat.Chatroom.Id = currentChatroom.Id
+			newChat.Chatroom.RoomName = currentChatroom.RoomName
+
+			userCookie, _ := r.Cookie(session.Manager.CookieName)
+			userSid, _ := url.QueryUnescape(userCookie.Value)
+			userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
+
+			if userSessionVar == currentChatroom.UserId {
+				//投稿主と部屋作成者が同じ場合
+				newChat.Chatroom.UserId = userSessionVar
+				newChat.Chatroom.Member = currentChatroom.Member
+			} else {
+				//投稿主と部屋作成者が違う場合
+				newChat.Chatroom.UserId = currentChatroom.Member
+				newChat.Chatroom.Member = currentChatroom.UserId
+			}
+			newChat.PostDt = time.Now().UTC().Round(time.Second)
+
+			posted := query.InsertChat(newChat.Chatroom.Id, newChat.Chatroom.UserId, newChat.Chatroom.RoomName, newChat.Chatroom.Member, newChat.Chat, newChat.PostDt, dbChtrm)
+			if posted == true {
+				fmt.Fprintf(w, "投稿されました")
+			} else {
+				fmt.Fprintf(w, "投稿できませんでした")
+			}
 		}
-		newChat.PostDt = time.Now().UTC().Round(time.Second)
+		if r.FormValue("delete-room") != "" {
+			roomUrl := r.URL.Path
+			_roomId := strings.TrimPrefix(roomUrl, "/mypage/chatroom")
+			roomId, _ := strconv.Atoi(_roomId)
 
-		posted := query.InsertChat(newChat.Chatroom.Id,
-			newChat.Chatroom.UserId, newChat.Chatroom.RoomName, newChat.Chatroom.Member, newChat.Chat, newChat.PostDt, dbChtrm)
-		if posted == true {
-			fmt.Fprintf(w, "投稿されました")
-		} else {
-			fmt.Fprintf(w, "投稿できませんでした")
+			dbChtrm, err := sql.Open("mysql", query.ConStrChtrm)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			defer dbChtrm.Close()
+
+			query.DeleteChatroomById(roomId, dbChtrm)
 		}
 	}
 }

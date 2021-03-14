@@ -48,6 +48,8 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		//自分を相手メンバーに選んだ時の禁止処理書く
+
 		newchatroom := new(query.Chatroom)
 		newchatroom.RoomName = r.FormValue("roomName")
 		newchatroom.Member = r.FormValue("memberName")
@@ -60,6 +62,11 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		userCookie, _ := r.Cookie(session.Manager.CookieName)
 		userSid, _ := url.QueryUnescape(userCookie.Value)
 		userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
+
+		if newchatroom.Member == userSessionVar {
+			fmt.Fprintf(w, "自分自身をメンバーに加えることはできません。")
+			return
+		}
 
 		dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 		if err != nil {
