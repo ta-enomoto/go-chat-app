@@ -23,9 +23,9 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		//適当にルームIDを変えると、他の人のルームが覗けるので、メンバのルームしかアクセスできないよう処理
-		userCookie, _ := r.Cookie(session.Manager.CookieName)
-		userSid, _ := url.QueryUnescape(userCookie.Value)
-		userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
+		//userCookie, _ := r.Cookie(session.Manager.CookieName)
+		//userSid, _ := url.QueryUnescape(userCookie.Value)
+		//userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
 
 		roomUrl := r.URL.Path
 		_roomId := strings.TrimPrefix(roomUrl, "/mypage/chatroom")
@@ -38,15 +38,16 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 		defer dbChtrm.Close()
 
 		selectedChatroom := query.SelectChatroomById(roomId, dbChtrm)
-		userId := selectedChatroom.UserId
-		member := selectedChatroom.Member
+		//userId := selectedChatroom.UserId
+		//member := selectedChatroom.Member
 
-		if userId != userSessionVar && member != userSessionVar {
-			fmt.Fprintf(w, "ルームにアクセスする権限がありません")
-			return
-		}
+		//if userId != userSessionVar && member != userSessionVar {
+		//	fmt.Fprintf(w, "ルームにアクセスする権限がありません")
+		//	return
+		//}
 
 		Chats := query.SelectAllChatsById(selectedChatroom.Id, dbChtrm)
+		fmt.Println(Chats)
 
 		t := template.Must(template.ParseFiles("./templates/mypage/chatroom.html"))
 		t.ExecuteTemplate(w, "chatroom.html", Chats)
@@ -105,9 +106,10 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 
 			posted := query.InsertChat(newChat.Chatroom.Id, newChat.Chatroom.UserId, newChat.Chatroom.RoomName, newChat.Chatroom.Member, newChat.Chat, newChat.PostDt, dbChtrm)
 			if posted == true {
-				fmt.Fprintf(w, "投稿されました")
+				return
 			} else {
 				fmt.Fprintf(w, "投稿できませんでした")
+				return
 			}
 		}
 		if r.FormValue("delete-room") != "" {

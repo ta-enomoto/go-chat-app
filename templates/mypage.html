@@ -7,18 +7,50 @@
 <body>
   <h2>こんにちは</h2>
   <p>新規ルームを作成する</p>
-  <form action="" method="post">
+  <form id="new_room">
     <p>新規ルーム名：<input type="text" id="roomName" name="roomName"></p>
     <p>相手ユーザー名：<input type="text" id="memberName" name="memberName"></p>
-    <p><input type="submit" value="作成する" id="chatroom" name="chatroom"></p>
+    <p><button type="button" id="chatroom" name="chatroom">作成する</button></p>
   </form>
-  <p>ルーム一覧</p>
-  <ul>
-    {{range .}}
-      <li><a href="/mypage/chatroom{{.Id}}">{{.RoomName}}（お相手：{{.Member}}）</a></li>
-    {{end}}
-    </ul>
+  <br></br>
+  <div id="div1">ルーム一覧</div>
+  <br></br>
   <a href="logout">ログアウトはこちら</a>
   <a href="withdrawal">退会はこちら</a>
+  <script>
+    document.body.onload = addLinks;
+    function addLinks(){
+      var arrayOfRooms = {{.}};
+      arrayOfRooms.reverse();
+      for (var value of arrayOfRooms){
+      var newLink = document.createElement("a");
+      var newLinkText = document.createTextNode(value['roomName'] + "（お相手：" + value['member'] + "）");
+      newLink.appendChild(newLinkText);
+      newLink.href = "/mypage/chatroom" + value['id'];
+      var br =document.createElement("br");
+      newLink.appendChild(br);
+      
+      var currentDiv = document.getElementById("div1");
+      document.body.insertBefore(newLink, currentDiv.nextElementSibling);
+      }
+    }
+
+    window.addEventListener("load", function(){
+      document.getElementById("chatroom").addEventListener("click", function(){
+        var formDatas = document.getElementById("new_room");
+        var postDatas = new FormData(formDatas);
+        
+        var XHR = new XMLHttpRequest();
+        XHR.open("POST", "/mypage", true);
+        XHR.send(postDatas);
+
+        XHR.onreadystatechange = function(){
+          if(XHR.readyState == 4 && XHR.status == 200){
+            location.reload();
+          }
+        }
+      }, false);
+    }, false);
+  </script>
 </body>
 </html>

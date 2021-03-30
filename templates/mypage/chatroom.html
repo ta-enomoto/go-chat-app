@@ -12,11 +12,11 @@
       <li>{{.Chat}}</li>
     {{end}}
     </ul>
-  <form action="" method="post">
+  <form action="" target="sendPhoto">
     <p>新規投稿：<input type="text" id="chat" name="chat"></p>
-    <p><input type="submit" value="書き込む" id="chat" name="chat"></p>
-    <button onclick="send();">send msg</button>
+    <button onclick="send();" id="chat">Send Message</button>
   </form>
+  <iframe name="sendPhoto" style="width:0px;height:0px;border:0px;"></iframe>
   <a href="/mypage">マイページに戻る</a>
   
   <form action="" method="post">
@@ -24,31 +24,76 @@
     <p></p>
     <p><input type="submit" value="削除する" id="delete-room" name="delete-room"></p>
   </form>
-  <script type="text/javascript">
+  <script>
     var socket = null;
     var data = "";
     var wsuri = "ws://localhost:8080/wsserver";
     window.onload = function() {
-        console.log("onload");
-      socket = new WebSocket(wsuri);
+        socket = new WebSocket(wsuri);
 
+        var url = location.href;
+        var roomid = url.replace("http://localhost:8080/mypage/chatroom","");
+        var cookie = document.cookie;
+        console.log(cookie)
+        
         socket.onopen = function() {
           console.log("connected");
+          class　Newchat {
+            constructor(id, userid, roomname, member, chat, postdt){
+              this.id = id;
+              this.userid = userid;
+              this.roomname = roomname;
+              this.member = member;
+              this.chat = chat;
+              this.postdt = postdt;
+            }
+          }
+        var roomname = {{.}}[0].Chatroom.roomName;
+        var userid = {{.}}[0].Chatroom.userId;
+        var member = {{.}}[0].Chatroom.member;
+        var postdt = Date.now();
+        var chat = "first contact";
+        const newchat = new Newchat(roomid, userid, roomname, member, chat, postdt);
+        socket.send(JSON.stringify(newchat));
+        console.log(JSON.stringify(newchat));
         }
-      
-        socket.onclose = function(e) {
-          console.log("connection closed");
-        }
-      
         socket.onmessage = function(e) {
           console.log("message recieved" + e.data);
+          location.reload();
         }
+        //socket.onclose = function(e) {
+        //  console.log("connection closed");
+        //}
       };
       
       function send() {
-        var chat = document.getElementById('chat').value;
-        socket.send(chat);
-      };
+          class　Newchat {
+            constructor(id, userid, roomname, member, chat, postdt, cookie){
+              this.id = id;
+              this.userid = userid;
+              this.roomname = roomname;
+              this.member = member;
+              this.chat = chat;
+              this.postdt = postdt;
+              this.cookie = cookie;
+            }
+          }
+
+          var url = location.href;
+          var roomid = url.replace("http://localhost:8080/mypage/chatroom","");
+          
+          var roomname = {{.}}[0].Chatroom.roomName;
+          var userid = {{.}}[0].Chatroom.userId;
+          var member = {{.}}[0].Chatroom.member;
+          var postdt = Date.now();
+          var chat = document.getElementById('chat').value;
+          var cookie = document.cookie;
+          const newchat = new Newchat(roomid, userid, roomname, member, chat, postdt, cookie);
+
+          socket.send(JSON.stringify(newchat));
+          console.log(JSON.stringify(newchat));
+        };
   </script>
 </body>
 </html>
+

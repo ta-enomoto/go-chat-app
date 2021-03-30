@@ -45,7 +45,7 @@ func (mux MyMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		routers.ChatroomHandler(w, r)
 
 	case websocketSever.MatchString(url):
-		websocket.Handler(wsserver.Echo).ServeHTTP(w, r)
+		websocket.Handler(wsserver.WebSocketHandler).ServeHTTP(w, r)
 
 	default:
 		http.NotFound(w, r)

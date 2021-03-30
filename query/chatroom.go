@@ -19,10 +19,10 @@ import (
 チャット情報からルーム情報を抽出しようとすると処理が重くなる
 (チャットルームはIDがPKになっているため重複がない)*/
 type Chatroom struct {
-	Id       int
-	UserId   string
-	RoomName string
-	Member   string
+	Id       int    `json:"id"`
+	UserId   string `json:"userId"`
+	RoomName string `json:"roomName"`
+	Member   string `json:"member"`
 }
 
 /*チャット構造体(テーブル「ALL_STRUCTS_OF_CHAT」に保存)
@@ -88,7 +88,6 @@ func SelectAllChatroomsByUserId(userSessionVal string, db *sql.DB) (chatrooms []
 			fmt.Println(err.Error())
 		}
 		chatrooms = append(chatrooms, chatroom)
-		fmt.Println(chatrooms)
 	}
 	return
 }
@@ -103,16 +102,16 @@ func SelectAllChatroomsByMember(userSessionVal string, db *sql.DB) (chatrooms []
 
 	for rows.Next() {
 		chatroom := Chatroom{}
-		err := rows.Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
+		err := rows.Scan(&chatroom.Id, &chatroom.Member, &chatroom.RoomName, &chatroom.UserId)
 		if err != nil {
 			fmt.Println(err.Error())
 		}
 		chatrooms = append(chatrooms, chatroom)
-		fmt.Println(chatrooms)
 	}
 	return
 }
 
+//idでチャットルームを選択
 func SelectChatroomById(id int, db *sql.DB) (chatroom Chatroom) {
 
 	err := db.QueryRow("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE ID = ?", id).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
@@ -125,6 +124,15 @@ func SelectChatroomById(id int, db *sql.DB) (chatroom Chatroom) {
 func SelectChatroomByUser(userId string, db *sql.DB) (chatroom Chatroom) {
 
 	err := db.QueryRow("SELECT ID, USER_ID, ROOM_NAME, MEMBER FROM ROOM_STRUCTS_OF_CHAT WHERE USER_ID = ?").Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return
+}
+
+func SelectChatroomByRoomName(roomName string, db *sql.DB) (chatroom Chatroom) {
+
+	err := db.QueryRow("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE ROOM_NAME = ?", roomName).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
@@ -156,7 +164,6 @@ func SelectAllChatsById(id int, db *sql.DB) (chats []Chat) {
 			fmt.Println(err.Error())
 		}
 		chats = append(chats, chat)
-		fmt.Println(chats)
 	}
 	return
 }

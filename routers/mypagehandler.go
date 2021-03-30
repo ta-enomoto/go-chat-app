@@ -9,6 +9,7 @@ import (
 	"html/template"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 func MypageHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +36,6 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 
 		chatroomsFromUserId := query.SelectAllChatroomsByUserId(userSessionVar, dbChtrm)
 		chatroomsFromMember := query.SelectAllChatroomsByMember(userSessionVar, dbChtrm)
-
 		var Links = append(chatroomsFromUserId, chatroomsFromMember...)
 
 		t.ExecuteTemplate(w, "mypage.html", Links)
@@ -90,9 +90,45 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 
 		newChtrmInsertedToDb := query.InsertChatroom(userSessionVar, newchatroom.RoomName, newchatroom.Member, dbChtrm)
 		if newChtrmInsertedToDb {
-			fmt.Fprintf(w, "新しいルームが作成されました")
+
+			dbChtrm, err := sql.Open("mysql", query.ConStrChtrm)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			defer dbChtrm.Close()
+
+			newChat := new(query.Chat)
+			newChat.Chat = "NEW ROOM CREATED"
+
+			createdChatroom := query.SelectChatroomByRoomName(newchatroom.RoomName, dbChtrm)
+
+			newChat.Chatroom.Id = createdChatroom.Id
+			newChat.Chatroom.RoomName = createdChatroom.RoomName
+
+			userCookie, _ := r.Cookie(session.Manager.CookieName)
+			userSid, _ := url.QueryUnescape(userCookie.Value)
+			userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
+
+			if userSessionVar == createdChatroom.UserId {
+				//投稿主と部屋作成者が同じ場合
+				newChat.Chatroom.UserId = userSessionVar
+				newChat.Chatroom.Member = createdChatroom.Member
+			} else {
+				//投稿主と部屋作成者が違う場合
+				newChat.Chatroom.UserId = createdChatroom.Member
+				newChat.Chatroom.Member = createdChatroom.UserId
+			}
+			newChat.PostDt = time.Now().UTC().Round(time.Second)
+			posted := query.InsertChat(newChat.Chatroom.Id, newChat.Chatroom.UserId, newChat.Chatroom.RoomName, newChat.Chatroom.Member, newChat.Chat, newChat.PostDt, dbChtrm)
+			if posted == true {
+				fmt.Println("初投稿成功")
+				return
+			} else {
+				fmt.Println("投稿できませんでした")
+				return
+			}
 		} else {
-			fmt.Fprintf(w, "既に登録されているルームです")
+			fmt.Println("既に登録されているルームです")
 		}
 	}
 }
