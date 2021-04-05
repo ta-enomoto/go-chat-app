@@ -44,18 +44,16 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 	同名のルーム名は、相手メンバー異なる場合のみ有効。*/
 	case "POST":
 		if ok := session.Manager.SessionIdCheck(w, r); !ok {
-			fmt.Fprintf(w, "セッションの有効期限が切れています")
+			//セッションの有効期限が切れていることを通知
 			return
 		}
-
-		//自分を相手メンバーに選んだ時の禁止処理書く
 
 		newchatroom := new(query.Chatroom)
 		newchatroom.RoomName = r.FormValue("roomName")
 		newchatroom.Member = r.FormValue("memberName")
 
 		if newchatroom.RoomName == "" || newchatroom.Member == "" {
-			fmt.Fprintf(w, "メンバーまたはルーム名が入力されていません")
+			//メンバーまたはルーム名が入力されていないことを通知
 			return
 		}
 
@@ -64,7 +62,7 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
 
 		if newchatroom.Member == userSessionVar {
-			fmt.Fprintf(w, "自分自身をメンバーに加えることはできません。")
+			//自分自身をメンバーに加えることはできないことを通知
 			return
 		}
 
@@ -78,7 +76,7 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		userIdExist := query.ContainsUserName(users, newchatroom.Member)
 
 		if !userIdExist {
-			fmt.Fprintf(w, "相手ユーザーが存在しません")
+			//相手ユーザーが存在しないことを通知
 			return
 		}
 
@@ -121,14 +119,14 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 			newChat.PostDt = time.Now().UTC().Round(time.Second)
 			posted := query.InsertChat(newChat.Chatroom.Id, newChat.Chatroom.UserId, newChat.Chatroom.RoomName, newChat.Chatroom.Member, newChat.Chat, newChat.PostDt, dbChtrm)
 			if posted == true {
-				fmt.Println("初投稿成功")
+				fmt.Println("初期投稿成功")
 				return
 			} else {
-				fmt.Println("投稿できませんでした")
+				fmt.Println("初期投稿失敗")
 				return
 			}
 		} else {
-			fmt.Println("既に登録されているルームです")
+			fmt.Println("ルーム作成失敗")
 		}
 	}
 }

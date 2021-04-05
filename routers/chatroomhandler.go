@@ -61,10 +61,10 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err := r.ParseForm()
-		if err != nil {
-			fmt.Println(err.Error())
-		}
+		//err := r.ParseForm()
+		//if err != nil {
+		//	fmt.Println(err.Error())
+		//}
 		fmt.Println(r.Form)
 		if r.FormValue("chat") != "" {
 			newChat := new(query.Chat)
@@ -112,7 +112,7 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		if r.FormValue("delete-room") != "" {
+		if r.FormValue("delete-room") == "削除する" {
 			roomUrl := r.URL.Path
 			_roomId := strings.TrimPrefix(roomUrl, "/mypage/chatroom")
 			roomId, _ := strconv.Atoi(_roomId)
@@ -124,6 +124,9 @@ func ChatroomHandler(w http.ResponseWriter, r *http.Request) {
 			defer dbChtrm.Close()
 
 			query.DeleteChatroomById(roomId, dbChtrm)
+
+			t := template.Must(template.ParseFiles("./templates/mypage/chatroomdeleted.html"))
+			t.ExecuteTemplate(w, "chatroomdeleted.html", nil)
 		}
 	}
 }

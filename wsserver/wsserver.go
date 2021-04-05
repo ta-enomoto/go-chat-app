@@ -23,7 +23,7 @@ type WsChat struct {
 }
 
 type WsChatroom struct {
-	id      int
+	id      string
 	forward chan string
 	Join    chan *WsClient
 	Leave   chan *WsClient
@@ -40,7 +40,7 @@ type WsClient struct {
 }
 
 type MANAGER struct {
-	WsRooms map[int]*WsChatroom
+	WsRooms map[string]*WsChatroom
 }
 
 var Manager *MANAGER
@@ -53,7 +53,7 @@ func init() {
 
 //init()でセッションマネージャ初期化時に使う関数
 func NewManager() *MANAGER {
-	database := make(map[int]*WsChatroom)
+	database := make(map[string]*WsChatroom)
 	return &MANAGER{WsRooms: database}
 }
 
@@ -72,8 +72,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 		if err := websocket.Message.Receive(ws, &chatroomJson); err == nil {
 			var chatroom WsChat
 			json.Unmarshal([]byte(chatroomJson), &chatroom)
-			roomId, _ := strconv.Atoi(chatroom.Id)
-			WsChatroom.id = roomId
+			WsChatroom.id = chatroom.Id
 		} else {
 			fmt.Println("初回接続失敗")
 		}
@@ -89,8 +88,11 @@ func WebSocketHandler(ws *websocket.Conn) {
 		WsChatroom.Join <- WsClient
 		defer func() {
 			WsChatroom.Leave <- WsClient
-			//if 0
-			//delete(Manager.WsRooms, WsChatroom.id)
+			Manager.WsRooms[WsChatroom.id].Leave <- WsClient
+			if len(Manager.WsRooms[WsChatroom.id].clients) == 0 {
+				delete(Manager.WsRooms, WsChatroom.id)
+				fmt.Println("WebSocket用ルーム削除")
+			}
 		}()
 
 		go WsClient.Write(ws)
@@ -101,7 +103,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 		if err := websocket.Message.Receive(ws, &chatroomJson); err == nil {
 			var chatroom WsChat
 			json.Unmarshal([]byte(chatroomJson), &chatroom)
-			roomId, _ := strconv.Atoi(chatroom.Id)
+			roomId := chatroom.Id
 			if _, exist := Manager.WsRooms[roomId]; exist {
 
 				WsClient := &WsClient{
@@ -112,8 +114,10 @@ func WebSocketHandler(ws *websocket.Conn) {
 				Manager.WsRooms[roomId].Join <- WsClient
 				defer func() {
 					Manager.WsRooms[roomId].Leave <- WsClient
-					//if 0
-					//delete(Manager.WsRooms, WsChatroom.id)
+					if len(Manager.WsRooms[roomId].clients) == 0 {
+						delete(Manager.WsRooms, roomId)
+						fmt.Println("WebSocket用ルーム削除")
+					}
 				}()
 				go WsClient.Write(ws)
 				WsClient.Read(ws)
@@ -131,8 +135,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 				if err := websocket.Message.Receive(ws, &chatroomJson); err == nil {
 					var chatroom WsChat
 					json.Unmarshal([]byte(chatroomJson), &chatroom)
-					roomId, _ := strconv.Atoi(chatroom.Id)
-					WsChatroom.id = roomId
+					WsChatroom.id = chatroom.Id
 				} else {
 					fmt.Println("初回接続失敗")
 				}
@@ -148,8 +151,11 @@ func WebSocketHandler(ws *websocket.Conn) {
 				WsChatroom.Join <- WsClient
 				defer func() {
 					WsChatroom.Leave <- WsClient
-					//if 0
-					//delete(Manager.WsRooms, WsChatroom.id)
+					Manager.WsRooms[WsChatroom.id].Leave <- WsClient
+					if len(Manager.WsRooms[WsChatroom.id].clients) == 0 {
+						delete(Manager.WsRooms, WsChatroom.id)
+						fmt.Println("WebSocket用ルーム削除")
+					}
 				}()
 
 				go WsClient.Write(ws)
