@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 	"goserver/query"
 	"goserver/sessions"
 	"html/template"
@@ -20,7 +21,8 @@ func WithdrawalHandler(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		deleteUser := new(query.User)
 		deleteUser.UserId = r.FormValue("userId")
-		deleteUser.Password = r.FormValue("password")
+		psw_string := r.FormValue("password")
+		deleteUser.Password = []byte(psw_string)
 
 		dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 		if err != nil {
@@ -29,7 +31,10 @@ func WithdrawalHandler(w http.ResponseWriter, r *http.Request) {
 		defer dbUsr.Close()
 
 		user := query.SelectUserById(deleteUser.UserId, dbUsr)
-		if deleteUser.UserId == user.UserId && deleteUser.Password == user.Password {
+
+		pswMatchOrNot := bcrypt.CompareHashAndPassword(user.Password, deleteUser.Password)
+
+		if deleteUser.UserId == user.UserId && pswMatchOrNot == nil {
 			fmt.Fprintf(w, "IDまたはパスワードが間違っています")
 			return
 		}

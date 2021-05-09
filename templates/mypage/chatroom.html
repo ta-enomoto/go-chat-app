@@ -5,13 +5,14 @@
     <title>マイページ</title>
 </head>
 <body>
+  <iframe id="chatspace" src="/tenplates/chatspace.html" frameborder="0"></iframe>
   <h2>ルーム名</h2>
   <p>投稿一覧</p>
   <ul>
     {{range .}}
       <li>{{.Chat}}</li>
     {{end}}
-    </ul>
+  </ul>
   <form action="" target="sendPhoto">
     <p>新規投稿：<input type="text" id="chat" name="chat"></p>
     <button onclick="send();" id="chat">Send Message</button>
@@ -59,7 +60,8 @@
         }
         socket.onmessage = function(e) {
           console.log("message recieved" + e.data);
-          location.reload();
+          var iframe = document.getElementById('chatspace');
+          iframe.contentWindow.location.reload(true);
         }
         //socket.onclose = function(e) {
         //  console.log("connection closed");

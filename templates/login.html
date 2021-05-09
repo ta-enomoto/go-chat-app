@@ -2,16 +2,17 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/public/css/cssoflogin.css">
     <title>ログイン画面</title>
 </head>
 <body>
+  <div class="login-form">
   <form action="" method="post">
-      <p>ユーザーID：<input type="text" id="userId" name="userId"></p>
-      <p>パスワード：<input type="password" id="password" name="password"></p>
-      <p><input type="submit" id="login" name="login"></p>
+      <p id="userId">ユーザーID：<input type="text" id="userId" name="userId"></p>
+      <p id="password">パスワード：<input type="password" id="password" name="password"></p>
+      <p><input type="submit" value="ログイン" id="login" name="login"></p>
   </form>
-  <p>
-  <a href="resistration">新規登録はこちら</a>
-  </p>
+  </div>
+  <a href="resistration" id="resist">新規登録はこちら</a>
 </body>
 </html>

@@ -1,0 +1,29 @@
+#logout{
+  text-align: right;
+}
+
+div.create-new-chatroom > p {
+  margin: 0em 0px;   /* 上下に1em・左右に0px */
+}
+
+#midashi-create-new-room{
+  font-size: 130%;
+}
+
+/*div.create-new-chatroom {
+  text-align: center;
+  display: block;
+  width: 400px;
+  margin: 0;
+  background-color:#b0c4de;
+  border: 2px solid #191970;
+}*/
+
+div.all-rooms {
+  text-align: center;
+  display: block;
+  width: 300px;
+  margin: 0 auto;
+  background-color:#b0c4de;
+  border: 2px solid #191970;
+}

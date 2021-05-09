@@ -19,12 +19,14 @@ func ResistrationHandler(w http.ResponseWriter, r *http.Request) {
 	case "POST":
 		newUser := new(query.User)
 		newUser.UserId = r.FormValue("userId")
-		newUser.Password = r.FormValue("password")
+		psw_string := r.FormValue("password")
 
-		if newUser.UserId == "" || newUser.Password == "" {
+		if newUser.UserId == "" || psw_string == "" {
 			fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
 			return
 		}
+
+		newUser.Password = []byte(psw_string)
 
 		dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 		if err != nil {

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 	"goserver/query"
 	"goserver/sessions"
 	"html/template"
@@ -16,17 +17,23 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	case "GET":
 		t := template.Must(template.ParseFiles("./templates/login.html"))
 		t.ExecuteTemplate(w, "login.html", nil)
+		return
 
 	//ログインID・パスワードがポストされた時
 	case "POST":
 		accessingUser := new(query.User)
 		accessingUser.UserId = r.FormValue("userId")
-		accessingUser.Password = r.FormValue("password")
+		fmt.Println(accessingUser.UserId)
+		psw_string := r.FormValue("password")
 
-		if accessingUser.UserId == "" || accessingUser.Password == "" {
+		if accessingUser.UserId == "" || psw_string == "" {
 			fmt.Fprintf(w, "IDまたはパスワードが入力されていません")
 			return
 		}
+
+		accessingUser.Password = []byte(psw_string)
+		fmt.Println(accessingUser.Password)
+
 		dbUsr, err := sql.Open("mysql", query.ConStrUsr)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -34,7 +41,11 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		defer dbUsr.Close()
 
 		user := query.SelectUserById(accessingUser.UserId, dbUsr)
-		if accessingUser.UserId == user.UserId && accessingUser.Password == user.Password {
+		fmt.Println(user)
+
+		pswMatchOrNot := bcrypt.CompareHashAndPassword(user.Password, accessingUser.Password)
+
+		if accessingUser.UserId == user.UserId && pswMatchOrNot == nil {
 			//if文でsessionstartがうまくいった時というふうに(ブラウザで/に戻った時、sid出し直してる)
 			session.Manager.SessionStart(w, r, accessingUser.UserId)
 			http.Redirect(w, r, "/mypage", 301)

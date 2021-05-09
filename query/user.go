@@ -5,13 +5,14 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 	"goserver/config"
 )
 
 // マスタからSELECTしたデータをマッピングする構造体
 type User struct {
 	UserId   string `db:"USER_ID"`  // ID
-	Password string `db:"PASSWORD"` // パスワード
+	Password []byte `db:"PASSWORD"` // パスワード
 }
 
 var confDbUsr *config.ConfigUsr
@@ -28,7 +29,10 @@ func init() {
 }
 
 // ユーザーをdbに登録する関数
-func InsertUser(userId string, password string, db *sql.DB) bool {
+func InsertUser(userId string, password []byte, db *sql.DB) bool {
+
+	hashed_pass, _ := bcrypt.GenerateFromPassword(password, 10)
+	fmt.Println(hashed_pass)
 
 	stmt, err := db.Prepare("INSERT INTO USERS(USER_ID,PASSWORD) VALUES(?,?)")
 	if err != nil {
@@ -36,7 +40,7 @@ func InsertUser(userId string, password string, db *sql.DB) bool {
 	}
 	defer stmt.Close()
 
-	insertedOrNot, err := stmt.Exec(userId, password)
+	insertedOrNot, err := stmt.Exec(userId, hashed_pass)
 	if err != nil {
 		return false
 	} else {
