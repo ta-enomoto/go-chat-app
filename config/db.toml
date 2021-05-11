@@ -1,13 +1,14 @@
 [database1]
-host = "localhost"
+host = "mysql"
 port = 3306
-db-name = "resistration"
+db-name = "gochatapp" #データベース2つのときはresistration
 charset = "utf8"
 user = "enomoto"
 
-[database2]
-host = "localhost"
-port = 3306
-db-name = "chatrooms"
-charset = "utf8"
-user = "enomoto"
+#dockerでは使用しない
+#[database2]
+#host = "mysql"
+#port = 3306
+#db-name = "chatrooms"
+#charset = "utf8"
+#user = "enomoto"

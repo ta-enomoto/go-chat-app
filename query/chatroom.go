@@ -51,14 +51,6 @@ func init() {
 // 新規チャットルーム登録関数
 func InsertChatroom(userSessionVal string, roomName string, memberName string, db *sql.DB) bool {
 
-	//newChatroom := Chatroom{UserId: userSessionVal, RoomName: roomName, Member: memberName}
-	//chatrooms := SelectAllChatroomsByUserId(userSessionVal, db)
-	//roomExist := contains(chatrooms, newChatroom)
-	//if roomExist {
-	//	fmt.Println("ルーム名重複")
-	//	return false
-	//}
-
 	stmt, err := db.Prepare("INSERT INTO ROOM_STRUCTS_OF_CHAT(USER_ID, ROOM_NAME, MEMBER) VALUES(?,?,?)")
 	if err != nil {
 		fmt.Println(err.Error())
@@ -131,24 +123,14 @@ func SelectChatroomByUser(userId string, db *sql.DB) (chatroom Chatroom) {
 	return
 }
 
-func SelectChatroomByRoomName(roomName string, db *sql.DB) (chatroom Chatroom) {
+func SelectChatroomByUserAndRoomNameAndMember(userId string, roomName string, member string, db *sql.DB) (chatroom Chatroom) {
 
-	err := db.QueryRow("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE ROOM_NAME = ?", roomName).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
+	err := db.QueryRow("SELECT * FROM ROOM_STRUCTS_OF_CHAT WHERE USER_ID = ? AND ROOM_NAME = ? AND MEMBER = ?", userId, roomName, member).Scan(&chatroom.Id, &chatroom.UserId, &chatroom.RoomName, &chatroom.Member)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 	return
 }
-
-//チャットルームの重複をチェックする
-//func contains(s []Chatroom, e Chatroom) bool {
-//	for _, v := range s {
-//		if e == v {
-//			return true
-//		}
-//	}
-//	return false
-//}
 
 //特定のチャットルームのチャットをすべて取得する
 func SelectAllChatsById(id int, db *sql.DB) (chats []Chat) {

@@ -10,10 +10,10 @@
   <p id="logout"><a href="logout">ログアウトはこちら</a></p>
   <div class="create-new-chatroom">
     <p id="midashi-create-new-room"><strong>新規ルームを作成する</strong></p>
-    <form>
+    <form id="new_room">
       <p>新規ルーム名：<input type="text" id="roomName" name="roomName"></p>
       <p>相手ユーザー名：<input type="text" id="memberName" name="memberName"></p>
-      <p><button type="button" id="chatroom" name="chatroom">作成する</button></p>
+      <p><button type="button" id="create_button" name="create_button">作成する</button></p>
     </form>
   </div>
   <br></br>
@@ -39,7 +39,7 @@
     }
 
     window.addEventListener("load", function(){
-      document.getElementById("chatroom").addEventListener("click", function(){
+      document.getElementById("create_button").addEventListener("click", function(){
         var formDatas = document.getElementById("new_room");
         var postDatas = new FormData(formDatas);
         
