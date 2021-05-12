@@ -40,8 +40,8 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 
 		t.ExecuteTemplate(w, "mypage.html", Links)
 
-	/*新しいルーム作成のポストがあった時の処理。ルーム名と相手メンバーを指定する
-	同名のルーム名は、相手メンバー異なる場合のみ有効。*/
+		/*新しいルーム作成のポストがあった時の処理。ルーム名と相手メンバーを指定する
+		同名のルーム名は、相手メンバー異なる場合のみ有効。*/
 	case "POST":
 		if ok := session.Manager.SessionIdCheck(w, r); !ok {
 			//セッションの有効期限が切れていることを通知
@@ -52,8 +52,8 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		newchatroom.RoomName = r.FormValue("roomName")
 		newchatroom.Member = r.FormValue("memberName")
 
+		//メンバーまたはルーム名が入力されていない
 		if newchatroom.RoomName == "" || newchatroom.Member == "" {
-			//メンバーまたはルーム名が入力されていないことを通知
 			return
 		}
 
@@ -61,8 +61,8 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		userSid, _ := url.QueryUnescape(userCookie.Value)
 		userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
 
+		//自分自身をメンバーに加えることはできない
 		if newchatroom.Member == userSessionVar {
-			//自分自身をメンバーに加えることはできないことを通知
 			return
 		}
 
@@ -75,8 +75,8 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		users := query.SelectAllUser(dbUsr)
 		userIdExist := query.ContainsUserName(users, newchatroom.Member)
 
+		//相手ユーザーが存在しない
 		if !userIdExist {
-			//相手ユーザーが存在しないことを通知
 			return
 		}
 
@@ -98,14 +98,10 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 			newChat := new(query.Chat)
 			newChat.Chat = "NEW ROOM CREATED"
 
-			createdChatroom := query.SelectChatroomByRoomName(newchatroom.RoomName, dbChtrm)
+			createdChatroom := query.SelectChatroomByUserAndRoomNameAndMember(userSessionVar, newchatroom.RoomName, newchatroom.Member, dbChtrm)
 
 			newChat.Chatroom.Id = createdChatroom.Id
 			newChat.Chatroom.RoomName = createdChatroom.RoomName
-
-			userCookie, _ := r.Cookie(session.Manager.CookieName)
-			userSid, _ := url.QueryUnescape(userCookie.Value)
-			userSessionVar := session.Manager.SessionStore[userSid].SessionValue["userId"]
 
 			if userSessionVar == createdChatroom.UserId {
 				//投稿主と部屋作成者が同じ場合

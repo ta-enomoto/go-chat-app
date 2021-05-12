@@ -8,7 +8,7 @@ import (
 	"goserver/query"
 	//"goserver/sessions"
 	"strconv"
-	"strings"
+	//"strings"
 	"time"
 )
 
@@ -177,7 +177,7 @@ func (WsChatroom *WsChatroom) ChatroomRun() {
 			fmt.Printf("クライアントが退出しました。現在 %x 人のクライアントが存在します。\n", len(WsChatroom.clients))
 
 		case msg := <-WsChatroom.forward:
-			fmt.Println("メッセージを受信")
+			fmt.Println("メッセージ受信")
 			for target := range WsChatroom.clients {
 				select {
 				case target.Send <- msg:
@@ -199,13 +199,9 @@ func (wc *WsClient) Read(ws *websocket.Conn) {
 		if err := websocket.Message.Receive(ws, &msg); err == nil {
 			json.Unmarshal([]byte(msg), &Chat)
 		} else {
-			fmt.Println("json失敗")
+			fmt.Println("json受信失敗")
 			return
 		}
-		cookie := Chat.Cookie
-		//複数cookieがある場合の処理
-		cookieValue := strings.TrimPrefix(cookie, "cookieName=")
-		fmt.Println(cookieValue)
 
 		dbChtrm, err := sql.Open("mysql", query.ConStrChtrm)
 		if err != nil {
@@ -219,10 +215,14 @@ func (wc *WsClient) Read(ws *websocket.Conn) {
 		currentChatroom := query.SelectChatroomById(roomId, dbChtrm)
 
 		postedChat.Chatroom.Id = currentChatroom.Id
+		fmt.Println(currentChatroom.Id)
 		postedChat.Chatroom.RoomName = currentChatroom.RoomName
 
+		//本番環境ではブラウザからcookie取得→sessionからuser特定
+		//cookie := Chat.Cookie
+		//ここに複数cookieがある場合の処理書いておく
+		//cookieValue := strings.TrimPrefix(cookie, "cookieName=")
 		//userSessionVar := session.Manager.SessionStore[cookieValue].SessionValue["userId"]
-		//本番環境ではsessionからuser特定
 
 		//if userSessionVar == currentChatroom.UserId {
 		//投稿主と部屋作成者が同じ場合

@@ -1,0 +1,19 @@
+FROM golang:1.15.6-alpine
+
+WORKDIR /go/src/go-chat-app
+
+ENV PASSWORD1=password
+
+RUN apk update \
+    && apk add --no-cache \
+        alpine-sdk \
+        git \
+    && go get github.com/pilu/fresh
+
+COPY . .
+COPY go.mod go.sum ./
+RUN go mod download
+
+EXPOSE 80
+
+CMD ["fresh"]

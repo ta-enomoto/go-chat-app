@@ -1,0 +1,41 @@
+version: '3'
+services:
+  mysql:
+    build:
+      context: .
+      dockerfile: docker/mysql/dockerfile
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: gochatapp
+      MYSQL_USER: enomoto
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: rootpass
+      TZ: 'Asia/Tokyo'
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    volumes:
+      - "db-data:/var/lib/mysql"
+      - ./docker/mysql/my.conf:/etc/mysql/conf.d/my.conf
+      - ./docker/mysql/initdb.d:/docker-entrypoint-initdb.d
+    networks:
+      - app-net
+  web:
+    links:
+      - mysql
+    build:
+      context: .
+      dockerfile: docker/app/dockerfile
+    ports:
+      - "80:80"
+    volumes:
+     - .:/go/src/go-chat-app
+    networks:
+      - app-net
+
+volumes:
+  db-data:
+    driver: local
+
+networks:
+  app-net:
+    driver: bridge

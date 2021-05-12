@@ -5,7 +5,6 @@
     <title>マイページ</title>
 </head>
 <body>
-  <iframe id="chatspace" src="/tenplates/chatspace.html" frameborder="0"></iframe>
   <h2>ルーム名</h2>
   <p>投稿一覧</p>
   <ul>
@@ -28,12 +27,12 @@
   <script>
     var socket = null;
     var data = "";
-    var wsuri = "ws://localhost:8080/wsserver";
+    var wsuri = "ws://localhost/wsserver";
     window.onload = function() {
         socket = new WebSocket(wsuri);
 
         var url = location.href;
-        var roomid = url.replace("http://localhost:8080/mypage/chatroom","");
+        var roomid = url.replace("http://localhost/mypage/chatroom","");
         var cookie = document.cookie;
         console.log(cookie)
         
@@ -60,8 +59,7 @@
         }
         socket.onmessage = function(e) {
           console.log("message recieved" + e.data);
-          var iframe = document.getElementById('chatspace');
-          iframe.contentWindow.location.reload(true);
+          location.reload();
         }
         //socket.onclose = function(e) {
         //  console.log("connection closed");
@@ -82,7 +80,7 @@
           }
 
           var url = location.href;
-          var roomid = url.replace("http://localhost:8080/mypage/chatroom","");
+          var roomid = url.replace("http://localhost/mypage/chatroom","");
           
           var roomname = {{.}}[0].Chatroom.roomName;
           var userid = {{.}}[0].Chatroom.userId;
