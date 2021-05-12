@@ -2,28 +2,31 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="/public/css/cssforchatroom.css">
     <title>マイページ</title>
 </head>
 <body>
-  <h2>ルーム名</h2>
-  <p>投稿一覧</p>
+  <p class="back-to-mypage"><a href="/mypage">マイページに戻る</a></p>
+  <form class="delete" action="" method="post">
+    <p><input type="submit" value="このルームを削除する" name="delete-room"></p>
+  </form>
+  
+  <div class="chat-space">
+  <h2>投稿一覧</h2>
+  <form class="new-post" action="" target="sendPhoto">
+    <p><input type="text" id="chat" name="chat" placeholder="新規投稿(英数字、255文字以内)"></p>
+    <p><button onclick="send();" id="chat">メッセージを送る</button></p>
+  </form>
   <ul>
     {{range .}}
-      <li>{{.Chat}}</li>
+      <li><div>{{.Chat}}　(投稿者：{{.Chatroom.UserId}}　投稿日：{{.PostDt}})</div></li>
     {{end}}
   </ul>
-  <form action="" target="sendPhoto">
-    <p>新規投稿：<input type="text" id="chat" name="chat"></p>
-    <button onclick="send();" id="chat">Send Message</button>
-  </form>
+  </div>
   <iframe name="sendPhoto" style="width:0px;height:0px;border:0px;"></iframe>
-  <a href="/mypage">マイページに戻る</a>
+
   
-  <form action="" method="post">
-    <p></p>
-    <p></p>
-    <p><input type="submit" value="削除する" name="delete-room"></p>
-  </form>
+
   <script>
     var socket = null;
     var data = "";
@@ -61,9 +64,9 @@
           console.log("message recieved" + e.data);
           location.reload();
         }
-        //socket.onclose = function(e) {
-        //  console.log("connection closed");
-        //}
+        socket.onclose = function(e) {
+          console.log("connection closed");
+        }
       };
       
       function send() {

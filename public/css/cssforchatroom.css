@@ -1,0 +1,42 @@
+body {background-color:#330033;}
+
+form.delete {
+    text-align:right
+}
+
+form.new-post {
+    text-align:center
+}
+
+form.new-post input {
+    width:600px;
+    height:20px;
+}
+
+form.new-post button {
+    text-align:right
+}
+
+p.back-to-mypage {
+      color: #FFFFFF;
+}
+
+div.chat-space h2 {
+    text-align:center;
+    color: #FFFFFF;
+}
+
+div.chat-space ul {
+    margin-left: 2em;
+    color: #FFFFFF;
+}
+
+p.back-to-mypage a{
+  text-align: right;
+  color: #FFFFFF;
+}
+
+p.back-to-mypage a:visited {
+  text-align: right;
+  color: #FFFFFF;
+}

@@ -1,0 +1,21 @@
+body {background-color:#330033;}
+
+div.container{
+  background-color:#FFFFFF;
+  position: relative;
+  width: 250px;
+  margin-top: 25%;
+  margin-bottom: 25%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 1em;
+  padding-bottom: 0.5em;
+}
+
+form.login-form {
+  text-align: center;
+}
+
+#resistration{
+  text-align: center;
+}

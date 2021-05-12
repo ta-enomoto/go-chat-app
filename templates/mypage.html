@@ -2,17 +2,16 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="/public/css/cssofmypage.css">
+    <link rel="stylesheet" type="text/css" href="/public/css/cssformypage.css">
     <title>マイページ</title>
 </head>
 <body>
-  <h2>こんにちは</h2>
   <p id="logout"><a href="logout">ログアウトはこちら</a></p>
   <div class="create-new-chatroom">
     <p id="midashi-create-new-room"><strong>新規ルームを作成する</strong></p>
-    <form id="new_room">
-      <p>新規ルーム名：<input type="text" id="roomName" name="roomName"></p>
-      <p>相手ユーザー名：<input type="text" id="memberName" name="memberName"></p>
+    <form class="creat-form" id="new_room">
+      <p><input type="text" id="roomName" name="roomName" placeholder="新規ルーム名"></p>
+      <p><input type="text" id="memberName" name="memberName" placeholder="相手ユーザー名"></p>
       <p><button type="button" id="create_button" name="create_button">作成する</button></p>
     </form>
   </div>
@@ -27,7 +26,7 @@
       arrayOfRooms.reverse();
       for (var value of arrayOfRooms){
       var newLink = document.createElement("a");
-      var newLinkText = document.createTextNode("●" + value['roomName'] + "（お相手：" + value['member'] + "）");
+      var newLinkText = document.createTextNode("・" + value['roomName'] + "（お相手：" + value['member'] + "）");
       newLink.appendChild(newLinkText);
       newLink.href = "/mypage/chatroom" + value['id'];
       var br =document.createElement("br");

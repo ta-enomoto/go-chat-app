@@ -1,0 +1,49 @@
+#logout a{
+  text-align: right;
+  color: #FFFFFF;
+}
+
+#logout a:visited {
+  text-align: right;
+  color: #FFFFFF;
+}
+
+body {background-color:#330033;}
+
+#midashi-create-new-room{
+  font-size: 130%;
+  text-align: center;
+  line-height:0.5;
+  color: #FFFFFF;
+}
+
+div.create-new-chatroom{
+  position: relative;
+  width: 250px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 0;
+  padding-bottom: 0.1em;
+}
+
+form.creat-form{
+    text-align: center;
+}
+
+
+
+div.all-rooms {
+  text-align: center;
+  display: block;
+  width: 500px;
+  margin: 0 auto;
+  background-color:#FFFFFF;
+  font-weight: bold;
+  color:#330033
+}
+
+a {
+  display: block;
+  text-align: center;
+  color: #FFFFFF
+}
