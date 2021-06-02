@@ -58,6 +58,8 @@ func NewManager() *MANAGER {
 }
 
 func WebSocketHandler(ws *websocket.Conn) {
+	defer ws.Close()
+
 	if len(Manager.WsRooms) == 0 {
 		WsChatroom := &WsChatroom{
 			forward: make(chan string),
@@ -79,6 +81,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 
 		Manager.WsRooms[WsChatroom.id] = WsChatroom
 		fmt.Println(Manager.WsRooms)
+		fmt.Println("1")
 
 		WsClient := &WsClient{
 			Send: make(chan string),
@@ -119,6 +122,10 @@ func WebSocketHandler(ws *websocket.Conn) {
 						fmt.Println("WebSocket用ルーム削除")
 					}
 				}()
+
+				fmt.Println(Manager.WsRooms)
+				fmt.Println("2")
+
 				go WsClient.Write(ws)
 				WsClient.Read(ws)
 			} else {
@@ -142,6 +149,7 @@ func WebSocketHandler(ws *websocket.Conn) {
 
 				Manager.WsRooms[WsChatroom.id] = WsChatroom
 				fmt.Println(Manager.WsRooms)
+				fmt.Println("3")
 
 				WsClient := &WsClient{
 					Send: make(chan string),
@@ -215,7 +223,6 @@ func (wc *WsClient) Read(ws *websocket.Conn) {
 		currentChatroom := query.SelectChatroomById(roomId, dbChtrm)
 
 		postedChat.Chatroom.Id = currentChatroom.Id
-		fmt.Println(currentChatroom.Id)
 		postedChat.Chatroom.RoomName = currentChatroom.RoomName
 
 		//本番環境ではブラウザからcookie取得→sessionからuser特定
@@ -238,10 +245,9 @@ func (wc *WsClient) Read(ws *websocket.Conn) {
 
 		posted := query.InsertChat(postedChat.Chatroom.Id, postedChat.Chatroom.UserId, postedChat.Chatroom.RoomName, postedChat.Chatroom.Member, postedChat.Chat, postedChat.PostDt, dbChtrm)
 		if posted {
+			fmt.Println("投稿成功")
 			wc.Room.forward <- msg
-			return
-		} else {
-			return
+			continue
 		}
 	}
 }
