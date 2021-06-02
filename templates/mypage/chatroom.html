@@ -13,11 +13,11 @@
   
   <div class="chat-space">
   <h2>投稿一覧</h2>
-  <form class="new-post" action="" target="sendPhoto">
+  <form class="new-post" action="" method="POST" target="sendPhoto">
     <p><input type="text" id="chat" name="chat" placeholder="新規投稿(英数字、255文字以内)"></p>
     <p><button onclick="send();" id="chat">メッセージを送る</button></p>
   </form>
-  <ul>
+  <ul id="chats">
     {{range .}}
       <li><div>{{.Chat}}　(投稿者：{{.Chatroom.UserId}}　投稿日：{{.PostDt}})</div></li>
     {{end}}
@@ -62,7 +62,12 @@
         }
         socket.onmessage = function(e) {
           console.log("message recieved" + e.data);
-          location.reload();
+          var chatobj = JSON.parse(e.data)
+          var text = document.createTextNode(chatobj.chat + '　(投稿者：' + chatobj.userid + '　投稿日：' + chatobj.postdt + ')')
+          var newLi = document.createElement("li");
+          newLi.appendChild(text);
+          var chatList = document.getElementById("chats")
+          chatList.appendChild(newLi);
         }
         socket.onclose = function(e) {
           console.log("connection closed");
@@ -85,11 +90,17 @@
           var url = location.href;
           var roomid = url.replace("http://localhost/mypage/chatroom","");
           
+          var chat = document.getElementById('chat').value;
+          if (chat == "") {
+            window.alert("チャットが入力されていません");
+            return;
+          };
+          
           var roomname = {{.}}[0].Chatroom.roomName;
           var userid = {{.}}[0].Chatroom.userId;
           var member = {{.}}[0].Chatroom.member;
           var postdt = Date.now();
-          var chat = document.getElementById('chat').value;
+          
           var cookie = document.cookie;
           const newchat = new Newchat(roomid, userid, roomname, member, chat, postdt, cookie);
 

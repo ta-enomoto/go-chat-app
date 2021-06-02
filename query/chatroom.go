@@ -160,11 +160,10 @@ func InsertChat(id int, userId string, roomName string, member string, chat stri
 	}
 	defer stmt.Close()
 
-	insertedOrNot, err := stmt.Exec(id, userId, roomName, member, chat, postDt)
+	_, err = stmt.Exec(id, userId, roomName, member, chat, postDt)
 	if err != nil {
 		return false
 	} else {
-		_ = insertedOrNot
 		return true
 	}
 }
