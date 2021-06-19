@@ -7,12 +7,33 @@
 </head>
 <body>
   <div class="container">
-  <form class="login-form" action="" method="post">
-      <p id="userId"><input type="text" id="userId" name="userId" placeholder="ユーザーID"></p>
-      <p id="password"><input type="password" id="password" name="password" placeholder="パスワード"></p>
-      <p><input type="submit" value="ログイン" id="login" name="login"></p>
+  <form class="login-form" action="" method="POST" id="loginform">
+      <p id="userId"><input type="text" id="inputedUserId" name="userId" placeholder="ユーザーID"></p>
+      <p id="password"><input type="password" id="inputedPassword" name="password" placeholder="パスワード"></p>
+      <p><input type="button" value="ログイン" id="login" name="login"></p>
   </form>
   <p id="resistration"><a href="resistration">新規登録はこちら</a></p>
   </div>
+  
+  <script>
+  const loginFunc = document.getElementById("login");
+    loginFunc.addEventListener("click", function(){  
+      let userId = document.getElementById("inputedUserId").value;
+      let password = document.getElementById("inputedPassword").value;
+      if (userId == "" && password == "") {
+        window.alert("ユーザーID・パスワードが入力されていません");
+        return;
+      } else if (userId == "") {
+        window.alert("ユーザーIDが入力されていません");
+        return;
+      } else if (password == "") {
+        window.alert("パスワードが入力されていません");
+        return;
+      } else {
+        this.form.submit()
+      };
+    });
+  </script>
 </body>
 </html>
+

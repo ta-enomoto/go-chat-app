@@ -47,8 +47,7 @@ var Manager *MANAGER
 
 //サーバー起動時にセッションマネージャも初期化
 func init() {
-	_manager := NewManager()
-	Manager = _manager
+	Manager = NewManager()
 }
 
 //init()でセッションマネージャ初期化時に使う関数

@@ -29,8 +29,8 @@ var Manager *MANAGER
 
 //サーバー起動時にセッションマネージャも初期化
 func init() {
-	_manager := NewManager("cookieName", 3600)
-	Manager = _manager
+	Manager = NewManager("cookieName", 3600)
+
 }
 
 //init()でセッションマネージャ初期化時に使う関数

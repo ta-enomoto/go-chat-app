@@ -35,17 +35,14 @@ type Chat struct {
 	PostDt   time.Time
 }
 
-var confDbChtrm *config.ConfigChtrm
 var ConStrChtrm string
 
 func init() {
-	_confDbChtrm, err := config.ReadConfDbChtrm()
+	confDbChtrm, err := config.ReadConfDbChtrm()
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	confDbChtrm = _confDbChtrm
-	_conStrChtrm := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=%s", confDbChtrm.User, confDbChtrm.Pass, confDbChtrm.Host, confDbChtrm.Port, confDbChtrm.DbName, confDbChtrm.Charset)
-	ConStrChtrm = _conStrChtrm
+	ConStrChtrm = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?parseTime=true&charset=%s", confDbChtrm.User, confDbChtrm.Pass, confDbChtrm.Host, confDbChtrm.Port, confDbChtrm.DbName, confDbChtrm.Charset)
 }
 
 // 新規チャットルーム登録関数
@@ -57,11 +54,10 @@ func InsertChatroom(userSessionVal string, roomName string, memberName string, d
 	}
 	defer stmt.Close()
 
-	insertedOrNot1, err := stmt.Exec(userSessionVal, roomName, memberName)
+	_, err = stmt.Exec(userSessionVal, roomName, memberName)
 	if err != nil {
 		return false
 	} else {
-		_ = insertedOrNot1
 		return true
 	}
 }
@@ -183,18 +179,15 @@ func DeleteChatroomById(id int, db *sql.DB) bool {
 	}
 	defer stmtDeleteChat.Close()
 
-	deletedChatroom, err := stmtDeleteChatroom.Exec(id)
+	_, err = stmtDeleteChatroom.Exec(id)
 	if err != nil {
 		return false
-	} else {
-		_ = deletedChatroom
 	}
 
-	deletedChat, err := stmtDeleteChatroom.Exec(id)
+	_, err = stmtDeleteChat.Exec(id)
 	if err != nil {
 		return false
 	} else {
-		_ = deletedChat
 		return true
 	}
 
