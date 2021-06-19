@@ -44,7 +44,7 @@ func MypageHandler(w http.ResponseWriter, r *http.Request) {
 		同名のルーム名は、相手メンバー異なる場合のみ有効。*/
 	case "POST":
 		if ok := session.Manager.SessionIdCheck(w, r); !ok {
-			//セッションの有効期限が切れていることを通知
+			fmt.Fprintf(w, "セッションの有効期限が切れています")
 			return
 		}
 

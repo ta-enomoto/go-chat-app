@@ -15,24 +15,23 @@ type User struct {
 	Password []byte `db:"PASSWORD"` // パスワード
 }
 
-var confDbUsr *config.ConfigUsr
 var ConStrUsr string
 
 func init() {
-	_confDbUsr, err := config.ReadConfDbUsr()
+	confDbUsr, err := config.ReadConfDbUsr()
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	confDbUsr = _confDbUsr
-	_conStrUsr := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s", confDbUsr.User, confDbUsr.Pass, confDbUsr.Host, confDbUsr.Port, confDbUsr.DbName, confDbUsr.Charset)
-	ConStrUsr = _conStrUsr
+	ConStrUsr = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s", confDbUsr.User, confDbUsr.Pass, confDbUsr.Host, confDbUsr.Port, confDbUsr.DbName, confDbUsr.Charset)
 }
 
 // ユーザーをdbに登録する関数
 func InsertUser(userId string, password []byte, db *sql.DB) bool {
 
-	hashed_pass, _ := bcrypt.GenerateFromPassword(password, 10)
-	fmt.Println(hashed_pass)
+	hashed_pass, err := bcrypt.GenerateFromPassword(password, 10)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 
 	stmt, err := db.Prepare("INSERT INTO USERS(USER_ID,PASSWORD) VALUES(?,?)")
 	if err != nil {
@@ -40,11 +39,10 @@ func InsertUser(userId string, password []byte, db *sql.DB) bool {
 	}
 	defer stmt.Close()
 
-	insertedOrNot, err := stmt.Exec(userId, hashed_pass)
+	_, err = stmt.Exec(userId, hashed_pass)
 	if err != nil {
 		return false
 	} else {
-		_ = insertedOrNot
 		return true
 	}
 }
@@ -68,11 +66,10 @@ func DeleteUserById(userId string, db *sql.DB) bool {
 	}
 	defer stmt.Close()
 
-	deletedOrNot, err := stmt.Exec(userId)
+	_, err = stmt.Exec(userId)
 	if err != nil {
 		return false
 	} else {
-		_ = deletedOrNot
 		return true
 	}
 }
