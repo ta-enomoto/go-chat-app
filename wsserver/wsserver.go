@@ -59,115 +59,62 @@ func NewManager() *MANAGER {
 func WebSocketHandler(ws *websocket.Conn) {
 	defer ws.Close()
 
-	if len(Manager.WsRooms) == 0 {
-		WsChatroom := &WsChatroom{
-			forward: make(chan string),
-			Join:    make(chan *WsClient),
-			Leave:   make(chan *WsClient),
-			clients: make(map[*WsClient]bool),
-		}
+	var chatroomJson string
+	if err := websocket.Message.Receive(ws, &chatroomJson); err == nil {
+		var chatroom WsChat
+		json.Unmarshal([]byte(chatroomJson), &chatroom)
+		roomId := chatroom.Id
+		if _, exist := Manager.WsRooms[roomId]; exist {
 
-		go WsChatroom.ChatroomRun()
+			WsClient := &WsClient{
+				Send: make(chan string),
+				Room: Manager.WsRooms[roomId],
+			}
 
-		var chatroomJson string
-		if err := websocket.Message.Receive(ws, &chatroomJson); err == nil {
+			Manager.WsRooms[roomId].Join <- WsClient
+			defer func() {
+				Manager.WsRooms[roomId].Leave <- WsClient
+				if len(Manager.WsRooms[roomId].clients) == 0 {
+					delete(Manager.WsRooms, roomId)
+					fmt.Println("WebSocket用ルーム削除")
+				}
+			}()
+
+			go WsClient.Write(ws)
+			WsClient.Read(ws)
+		} else {
+			WsChatroom := &WsChatroom{
+				forward: make(chan string),
+				Join:    make(chan *WsClient),
+				Leave:   make(chan *WsClient),
+				clients: make(map[*WsClient]bool),
+			}
+
+			go WsChatroom.ChatroomRun()
+
 			var chatroom WsChat
 			json.Unmarshal([]byte(chatroomJson), &chatroom)
 			WsChatroom.id = chatroom.Id
-		} else {
-			fmt.Println("初回接続失敗")
-		}
 
-		Manager.WsRooms[WsChatroom.id] = WsChatroom
-		fmt.Println(Manager.WsRooms)
-		fmt.Println("1")
+			Manager.WsRooms[WsChatroom.id] = WsChatroom
 
-		WsClient := &WsClient{
-			Send: make(chan string),
-			Room: WsChatroom,
-		}
-
-		WsChatroom.Join <- WsClient
-		defer func() {
-			WsChatroom.Leave <- WsClient
-			Manager.WsRooms[WsChatroom.id].Leave <- WsClient
-			if len(Manager.WsRooms[WsChatroom.id].clients) == 0 {
-				delete(Manager.WsRooms, WsChatroom.id)
-				fmt.Println("WebSocket用ルーム削除")
+			WsClient := &WsClient{
+				Send: make(chan string),
+				Room: WsChatroom,
 			}
-		}()
 
-		go WsClient.Write(ws)
-		WsClient.Read(ws)
-
-	} else {
-		var chatroomJson string
-		if err := websocket.Message.Receive(ws, &chatroomJson); err == nil {
-			var chatroom WsChat
-			json.Unmarshal([]byte(chatroomJson), &chatroom)
-			roomId := chatroom.Id
-			if _, exist := Manager.WsRooms[roomId]; exist {
-
-				WsClient := &WsClient{
-					Send: make(chan string),
-					Room: Manager.WsRooms[roomId],
+			WsChatroom.Join <- WsClient
+			defer func() {
+				WsChatroom.Leave <- WsClient
+				Manager.WsRooms[WsChatroom.id].Leave <- WsClient
+				if len(Manager.WsRooms[WsChatroom.id].clients) == 0 {
+					delete(Manager.WsRooms, WsChatroom.id)
+					fmt.Println("WebSocket用ルーム削除")
 				}
+			}()
 
-				Manager.WsRooms[roomId].Join <- WsClient
-				defer func() {
-					Manager.WsRooms[roomId].Leave <- WsClient
-					if len(Manager.WsRooms[roomId].clients) == 0 {
-						delete(Manager.WsRooms, roomId)
-						fmt.Println("WebSocket用ルーム削除")
-					}
-				}()
-
-				fmt.Println(Manager.WsRooms)
-				fmt.Println("2")
-
-				go WsClient.Write(ws)
-				WsClient.Read(ws)
-			} else {
-				WsChatroom := &WsChatroom{
-					forward: make(chan string),
-					Join:    make(chan *WsClient),
-					Leave:   make(chan *WsClient),
-					clients: make(map[*WsClient]bool),
-				}
-
-				go WsChatroom.ChatroomRun()
-
-				var chatroomJson string
-				if err := websocket.Message.Receive(ws, &chatroomJson); err == nil {
-					var chatroom WsChat
-					json.Unmarshal([]byte(chatroomJson), &chatroom)
-					WsChatroom.id = chatroom.Id
-				} else {
-					fmt.Println("初回接続失敗")
-				}
-
-				Manager.WsRooms[WsChatroom.id] = WsChatroom
-				fmt.Println(Manager.WsRooms)
-				fmt.Println("3")
-
-				WsClient := &WsClient{
-					Send: make(chan string),
-					Room: WsChatroom,
-				}
-
-				WsChatroom.Join <- WsClient
-				defer func() {
-					WsChatroom.Leave <- WsClient
-					Manager.WsRooms[WsChatroom.id].Leave <- WsClient
-					if len(Manager.WsRooms[WsChatroom.id].clients) == 0 {
-						delete(Manager.WsRooms, WsChatroom.id)
-						fmt.Println("WebSocket用ルーム削除")
-					}
-				}()
-
-				go WsClient.Write(ws)
-				WsClient.Read(ws)
-			}
+			go WsClient.Write(ws)
+			WsClient.Read(ws)
 		}
 	}
 }
