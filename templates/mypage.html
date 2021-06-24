@@ -21,50 +21,50 @@
   <a href="withdrawal">退会はこちら</a>
   <script>
     document.body.onload = addLinks;
-    function addLinks(){
-      let arrayOfRooms = {{.}};
-      arrayOfRooms.reverse();
-      for (let value of arrayOfRooms){
-      let newLink = document.createElement("a");
-      let newLinkText = document.createTextNode("・" + value['roomName'] + "（お相手：" + value['member'] + "）");
-      newLink.appendChild(newLinkText);
-      newLink.href = "/mypage/chatroom" + value['id'];
-      let br =document.createElement("br");
-      newLink.appendChild(br);
+function addLinks(){
+  let arrayOfRooms = {{.}};
+  arrayOfRooms.reverse();
+  for (let value of arrayOfRooms){
+  let newLink = document.createElement("a");
+  let newLinkText = document.createTextNode("・" + value['roomName'] + "（お相手：" + value['member'] + "）");
+  newLink.appendChild(newLinkText);
+  newLink.href = "/mypage/chatroom" + value['id'];
+  let br =document.createElement("br");
+  newLink.appendChild(br);
+  
+  let currentDiv = document.getElementById("div1");
+  document.body.insertBefore(newLink, currentDiv.nextElementSibling);
+  }
+}
+
+window.addEventListener("load", function(){
+  document.getElementById("create_button").addEventListener("click", function(){
+    let roomName = document.getElementById("roomName").value;
+      if (roomName == "") {
+        window.alert("ルーム名が入力されていません");
+        return;
+      };
       
-      let currentDiv = document.getElementById("div1");
-      document.body.insertBefore(newLink, currentDiv.nextElementSibling);
+      let memberName = document.getElementById("memberName").value;
+      if (memberName == "") {
+        window.alert("お相手が入力されていません");
+        return;
+      };
+      
+    let formDatas = document.getElementById("new_room");
+    let postDatas = new FormData(formDatas);
+    
+    let XHR = new XMLHttpRequest();
+    XHR.open("POST", "/mypage", true);
+    XHR.send(postDatas);
+
+    XHR.onreadystatechange = function(){
+      if(XHR.readyState == 4 && XHR.status == 200){
+        location.reload();
       }
     }
-
-    window.addEventListener("load", function(){
-      document.getElementById("create_button").addEventListener("click", function(){
-        let roomName = document.getElementById("roomName").value;
-          if (roomName == "") {
-            window.alert("ルーム名が入力されていません");
-            return;
-          };
-          
-          let memberName = document.getElementById("memberName").value;
-          if (memberName == "") {
-            window.alert("お相手が入力されていません");
-            return;
-          };
-          
-        let formDatas = document.getElementById("new_room");
-        let postDatas = new FormData(formDatas);
-        
-        let XHR = new XMLHttpRequest();
-        XHR.open("POST", "/mypage", true);
-        XHR.send(postDatas);
-
-        XHR.onreadystatechange = function(){
-          if(XHR.readyState == 4 && XHR.status == 200){
-            location.reload();
-          }
-        }
-      }, false);
-    }, false);
+  }, false);
+}, false);
   </script>
 </body>
 </html>
